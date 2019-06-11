@@ -1,7 +1,6 @@
 defmodule Click do
-  alias ChromeRemoteInterface.RPC.DOM
   alias Click.Browser
-  alias Click.Extra
+  alias Click.Chrome
 
   def start(_type, _args) do
     children = [
@@ -17,18 +16,7 @@ defmodule Click do
   end
 
   def find_all(%Browser{pid: pid, nodes: nodes} = browser, query) do
-    retry(fn ->
-      new_nodes =
-        nodes
-        |> Enum.map(fn node ->
-          with {:ok, %{"result" => %{"nodeIds" => node_ids}}} <- DOM.querySelectorAll(pid, %{"nodeId" => node, "selector" => query}) do
-            node_ids
-          end
-        end)
-        |> List.flatten()
-
-      %{browser | nodes: new_nodes}
-    end)
+    %{browser | nodes: Chrome.query_selector_all(pid, nodes, query)}
   end
 
   def find_first(browser, query) do
@@ -44,41 +32,26 @@ defmodule Click do
   end
 
   def html(%Browser{pid: pid, nodes: nodes}) do
-    retry(fn ->
-      nodes
-      |> Enum.map(fn node ->
-        with {:ok, %{"result" => %{"outerHTML" => outer_html}}} <- DOM.getOuterHTML(pid, %{"nodeId" => node}) do
-          outer_html
-        end
-      end)
-      |> List.flatten()
-    end)
+    Chrome.get_outer_html(pid, nodes)
   end
 
   def text(%Browser{pid: pid, nodes: nodes}) do
-    nodes
-    |> Enum.map(fn node ->
-      with {:ok, %{"result" => %{"node" => %{"children" => children}}}} <- DOM.describeNode(pid, %{"nodeId" => node, "depth" => -1}) do
-        children
-        |> Enum.map(fn
-          %{"nodeName" => "#text", "nodeValue" => text} -> text
-          _ -> nil
-        end)
-      end
-    end)
+    Chrome.describe_node(pid, nodes, -1)
+    |> Enum.map(& &1["children"])
     |> List.flatten()
-    |> Extra.Enum.compact()
+    |> Enum.filter(&(&1["nodeName"] == "#text"))
+    |> Enum.map(& &1["nodeValue"])
   end
 
-  defp retry(fun, count \\ 10) do
-    case fun.() do
-      {:ok, result} ->
-        {:ok, result}
-
-      result ->
-        if count == 0,
-          do: result,
-          else: :timer.sleep(100) && retry(fun, count - 1)
-    end
-  end
+  #  defp retry(fun, count \\ 10) do
+  #    case fun.() do
+  #      {:ok, result} ->
+  #        {:ok, result}
+  #
+  #      result ->
+  #        if count == 0,
+  #          do: result,
+  #          else: :timer.sleep(100) && IO.write("®") && retry(fun, count - 1)
+  #    end
+  #  end
 end

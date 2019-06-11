@@ -28,7 +28,7 @@ defmodule Click.Browser do
     with {:ok, _} <- Page.enable(pid),
          :ok <- PageSession.subscribe(pid, "Page.loadEventFired"),
          url <- URI.merge(base_url, path) |> to_string(),
-         {:ok, _} <- Page.navigate(pid, %{url: url}) |> Chrome.result() do
+         {:ok, _} <- Page.navigate(pid, %{url: url}) do
       receive do
         {:chrome_remote_interface, "Page.loadEventFired", _response} ->
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")

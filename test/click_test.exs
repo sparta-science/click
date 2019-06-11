@@ -9,6 +9,9 @@ defmodule Click.ClickTest do
     [browser: Click.new_browser()]
   end
 
+  # todo: everything should return {:ok, _} or {:error, _}, including lists: {:ok, [_]}, {:error, [_]}
+  #       maybe ! versions of all functions then that return something else
+
   test "can get the HTML source of a page", %{browser: browser} do
     html = browser |> Click.html()
     assert normalize(html) == normalize([TestPlug.home_page()])
