@@ -2,7 +2,7 @@ defmodule Click.Chrome do
   alias ChromeRemoteInterface.RPC.DOM
 
   def describe_node(pid, nodes, depth) when is_list(nodes),
-    do: nodes |> Enum.map(&describe_node(pid, &1, depth)) |> List.flatten()
+    do: with_nodes(nodes, &describe_node(pid, &1, depth))
 
   def describe_node(pid, node, depth) do
     with {:ok, %{"result" => %{"node" => description}}} <- DOM.describeNode(pid, %{"nodeId" => node, "depth" => depth}) do
@@ -11,7 +11,7 @@ defmodule Click.Chrome do
   end
 
   def get_outer_html(pid, nodes) when is_list(nodes),
-    do: nodes |> Enum.map(&get_outer_html(pid, &1)) |> List.flatten()
+    do: with_nodes(nodes, &get_outer_html(pid, &1))
 
   def get_outer_html(pid, node) do
     with {:ok, %{"result" => %{"outerHTML" => outer_html}}} <- DOM.getOuterHTML(pid, %{"nodeId" => node}) do
@@ -20,11 +20,14 @@ defmodule Click.Chrome do
   end
 
   def query_selector_all(pid, nodes, query) when is_list(nodes),
-    do: nodes |> Enum.map(&query_selector_all(pid, &1, query)) |> List.flatten()
+    do: with_nodes(nodes, &query_selector_all(pid, &1, query))
 
   def query_selector_all(pid, node, query) do
     with {:ok, %{"result" => %{"nodeIds" => nodes}}} <- DOM.querySelectorAll(pid, %{"nodeId" => node, "selector" => query}) do
       nodes
     end
   end
+
+  defp with_nodes(nodes, fun),
+    do: nodes |> Enum.map(fun) |> List.flatten()
 end

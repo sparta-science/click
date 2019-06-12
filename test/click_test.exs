@@ -9,21 +9,38 @@ defmodule Click.ClickTest do
     [browser: Click.new_browser()]
   end
 
-  # todo: everything should return {:ok, _} or {:error, _}, including lists: {:ok, [_]}, {:error, [_]}
-  #       maybe ! versions of all functions then that return something else
-
-  test "can get the HTML source of a page", %{browser: browser} do
-    html = browser |> Click.html()
-    assert normalize(html) == normalize([TestPlug.home_page()])
+  describe "html" do
+    test "returns the HTML source of a page", %{browser: browser} do
+      html = browser |> Click.html()
+      assert normalize(html) == normalize([TestPlug.home_page()])
+    end
   end
 
-  test "can get text of an element", %{browser: browser} do
-    header = browser |> Click.find_first("h1") |> Click.text()
-    assert header == ["Hello, world!"]
+  describe "find_first" do
+    test "gets  the first matching node", %{browser: browser} do
+      browser = browser |> Click.find_first("h2")
+      assert length(browser.nodes) == 1
+      assert browser |> Click.text() == ["Lorem"]
+    end
   end
 
-  test "can get text of multiple elements", %{browser: browser} do
-    headers = browser |> Click.find_all("h2") |> Click.text()
-    assert headers == ["Lorem", "Ipsum"]
+  describe "find_all" do
+    test "gets all the matching nodes", %{browser: browser} do
+      browser = browser |> Click.find_all("h2")
+      assert length(browser.nodes) == 2
+      assert Click.text(browser) == ["Lorem", "Ipsum"]
+    end
+  end
+
+  describe "text" do
+    test "gets the text of a single element", %{browser: browser} do
+      header = browser |> Click.find_first("h2") |> Click.text()
+      assert header == ["Lorem"]
+    end
+
+    test "gets the text of multiple  elements", %{browser: browser} do
+      headers = browser |> Click.find_all("h2") |> Click.text()
+      assert headers == ["Lorem", "Ipsum"]
+    end
   end
 end
