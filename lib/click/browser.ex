@@ -1,7 +1,6 @@
 defmodule Click.Browser do
   alias ChromeRemoteInterface.PageSession
-  alias ChromeRemoteInterface.RPC.DOM
-  alias ChromeRemoteInterface.RPC.Page
+  alias ChromeRemoteInterface.RPC
   alias ChromeRemoteInterface.Session
   alias Click.Browser
   alias Click.Chrome
@@ -11,6 +10,7 @@ defmodule Click.Browser do
   def new(base_url) do
     with browser <- %Browser{base_url: base_url, pid: nil, root_node: nil, nodes: []},
          {:ok, browser} <- start_session(browser),
+         {:ok, browser} <- update_user_agent(browser, "foo"),
          {:ok, browser} <- navigate(browser, "/"),
          {:ok, browser} <- get_document(browser) do
       browser
@@ -18,17 +18,17 @@ defmodule Click.Browser do
   end
 
   def get_document(%Browser{pid: pid} = browser) do
-    with {:ok, %{"result" => %{"root" => %{"nodeId" => root_node_id}}}} <- DOM.getDocument(pid),
+    with {:ok, %{"result" => %{"root" => %{"nodeId" => root_node_id}}}} <- RPC.DOM.getDocument(pid),
          browser <- %{browser | root_node: root_node_id, nodes: [root_node_id]} do
       {:ok, browser}
     end
   end
 
   def navigate(%Browser{base_url: base_url, pid: pid} = browser, path) do
-    with {:ok, _} <- Page.enable(pid),
+    with {:ok, _} <- RPC.Page.enable(pid),
          :ok <- PageSession.subscribe(pid, "Page.loadEventFired"),
          url <- URI.merge(base_url, path) |> to_string(),
-         {:ok, _} <- Page.navigate(pid, %{url: url}) do
+         {:ok, _} <- RPC.Page.navigate(pid, %{url: url}) do
       receive do
         {:chrome_remote_interface, "Page.loadEventFired", _response} ->
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
@@ -45,6 +45,13 @@ defmodule Click.Browser do
     with {:ok, [first_page | _]} <- Session.new(port: 9222) |> Session.list_pages(),
          {:ok, pid} <- PageSession.start_link(first_page) do
       {:ok, %{browser | pid: pid}}
+    end
+  end
+
+  def update_user_agent(%Browser{pid: pid} = browser, suffix) do
+    with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),
+         {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent <> suffix}) do
+      {:ok, browser}
     end
   end
 end

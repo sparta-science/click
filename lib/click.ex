@@ -30,6 +30,13 @@ defmodule Click do
     Chrome.get_outer_html(pid, nodes)
   end
 
+  def navigate(browser, path) do
+    with {:ok, browser} <- Browser.navigate(browser, path),
+         {:ok, browser} <- Browser.get_document(browser) do
+      browser
+    end
+  end
+
   def text(%Browser{pid: pid, nodes: nodes}) do
     Chrome.describe_node(pid, nodes, -1)
     |> Enum.map(& &1["children"])
