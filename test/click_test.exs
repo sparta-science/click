@@ -35,6 +35,18 @@ defmodule Click.ClickTest do
     end
   end
 
+  describe "new_browser" do
+    test "can append metadata to the user agent string" do
+      [user_agent] =
+        Click.new_browser(metadata: "glorp")
+        |> Click.navigate("/info")
+        |> Click.find_first("user-agent")
+        |> Click.text()
+
+      assert user_agent =~ ~r|.*/BeamMetadata \(g2gCZAACdjFtAAAABWdsb3Jw\)$|
+    end
+  end
+
   describe "text" do
     test "gets the text of a single element" do
       header = Click.new_browser() |> Click.find_first("h2") |> Click.text()

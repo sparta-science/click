@@ -6,8 +6,11 @@ defmodule Click do
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
 
-  def new_browser() do
-    Browser.new("http://localhost:4001")
+  def new_browser(opts \\ []) do
+    Browser.new(
+      "http://localhost:4001",
+      user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
+    )
   end
 
   def find_all(%Browser{pid: pid, nodes: nodes} = browser, query) do
@@ -44,6 +47,14 @@ defmodule Click do
     |> Enum.filter(&(&1["nodeName"] == "#text"))
     |> Enum.map(& &1["nodeValue"])
   end
+
+  #
+
+  defp beam_metadata(nil),
+    do: nil
+
+  defp beam_metadata(metadata),
+    do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
 
   #  defp retry(fun, count \\ 10) do
   #    case fun.() do
