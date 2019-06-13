@@ -1,5 +1,6 @@
 defmodule Click.Chrome do
   alias ChromeRemoteInterface.RPC
+  alias Click.Extra
 
   def describe_node(pid, nodes, depth) when is_list(nodes),
     do: with_nodes(nodes, &describe_node(pid, &1, depth))
@@ -7,6 +8,15 @@ defmodule Click.Chrome do
   def describe_node(pid, node, depth) do
     with {:ok, %{"result" => %{"node" => description}}} <- RPC.DOM.describeNode(pid, %{"nodeId" => node, "depth" => depth}) do
       description
+    end
+  end
+
+  def get_attributes(pid, nodes) when is_list(nodes),
+    do: with_nodes(nodes, &get_attributes(pid, &1))
+
+  def get_attributes(pid, node) do
+    with {:ok, %{"result" => %{"attributes" => attributes}}} <- RPC.DOM.getAttributes(pid, %{"nodeId" => node}) do
+      Extra.List.to_map(attributes)
     end
   end
 

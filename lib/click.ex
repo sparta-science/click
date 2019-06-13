@@ -13,6 +13,13 @@ defmodule Click do
     )
   end
 
+  def attr(browser, attr_name) do
+    with %Browser{pid: pid, nodes: nodes} <- find_all(browser, "[#{attr_name}]"),
+         attributes <- Chrome.get_attributes(pid, nodes) do
+      Enum.map(attributes, &Map.get(&1, attr_name))
+    end
+  end
+
   def find_all(%Browser{pid: pid, nodes: nodes} = browser, query) do
     %{browser | nodes: Chrome.query_selector_all(pid, nodes, query)}
   end

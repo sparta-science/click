@@ -8,6 +8,7 @@ defmodule Click.TestPlug do
   def call(conn, _opts) do
     case conn.request_path do
       "/" -> html(conn, home_page())
+      "/attrs" -> html(conn, attrs_page())
       "/info" -> html(conn, info_page(conn))
       "/page-two" -> html(conn, page_two())
     end
@@ -15,6 +16,20 @@ defmodule Click.TestPlug do
 
   defp html(conn, s) do
     conn |> put_resp_content_type("text/html") |> send_resp(200, s)
+  end
+
+  def attrs_page() do
+    """
+    <html>
+      <head></head>
+      <body>
+        <div class="topper" data-role="top" id="the-top">
+          <div data-role="inner">inner</div>
+        </div>
+        <div data-role="bottom">second</div>
+        <div>no data role</div>
+      </body>
+    """
   end
 
   def home_page() do

@@ -33,7 +33,7 @@ defmodule Click.Browser do
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
           {:ok, browser}
       after
-        250 ->
+        2_000 ->
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
           {:error, "Timeout waiting for Page.loadEventFired for navigating to #{url}"}
       end

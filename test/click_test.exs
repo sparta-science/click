@@ -5,6 +5,13 @@ defmodule Click.ClickTest do
 
   alias Click.TestPlug
 
+  describe "attr" do
+    test "gets the specified attr" do
+      attrs = Click.new_browser() |> Click.navigate("/attrs") |> Click.attr("data-role")
+      assert attrs == ["top", "inner", "bottom"]
+    end
+  end
+
   describe "find_all" do
     test "gets all the matching nodes" do
       browser = Click.new_browser() |> Click.find_all("h2")
