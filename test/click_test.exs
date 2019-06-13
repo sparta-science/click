@@ -5,6 +5,11 @@ defmodule Click.ClickTest do
 
   alias Click.TestPlug
 
+  setup_all do
+    start_supervised(Plug.Cowboy.child_spec(scheme: :http, plug: Click.TestPlug, options: [port: 4001]))
+    :ok
+  end
+
   setup do
     [browser: Click.new_browser()]
   end

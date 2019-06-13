@@ -3,12 +3,7 @@ defmodule Click do
   alias Click.Chrome
 
   def start(_type, _args) do
-    children = [
-      Plug.Cowboy.child_spec(scheme: :http, plug: Click.TestPlug, options: [port: 4001])
-    ]
-
-    opts = [strategy: :one_for_one, name: Click.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
 
   def new_browser() do
