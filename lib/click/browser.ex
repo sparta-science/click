@@ -3,14 +3,13 @@ defmodule Click.Browser do
   alias ChromeRemoteInterface.RPC
   alias ChromeRemoteInterface.Session
   alias Click.Browser
-  alias Click.Chrome
 
   defstruct ~w{base_url pid root_node nodes}a
 
-  def new(base_url) do
+  def new(base_url, opts \\ []) do
     with browser <- %Browser{base_url: base_url, pid: nil, root_node: nil, nodes: []},
          {:ok, browser} <- start_session(browser),
-         {:ok, browser} <- update_user_agent(browser, "foo"),
+         {:ok, browser} <- update_user_agent(browser, Keyword.get(opts, :user_agent_suffix)),
          {:ok, browser} <- navigate(browser, "/"),
          {:ok, browser} <- get_document(browser) do
       browser
@@ -47,6 +46,8 @@ defmodule Click.Browser do
       {:ok, %{browser | pid: pid}}
     end
   end
+
+  def update_user_agent(browser, nil), do: {:ok, browser}
 
   def update_user_agent(%Browser{pid: pid} = browser, suffix) do
     with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),

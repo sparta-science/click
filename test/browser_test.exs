@@ -1,10 +1,17 @@
 defmodule Click.BrowserTest do
   use ExUnit.Case, async: false
 
+  alias Click.Browser
+
   describe "new" do
     test "user agent" do
-      [user_agent] = Click.new_browser() |> Click.navigate("/info") |> Click.find_first("user-agent") |> Click.text()
-      assert user_agent |> String.ends_with?("foo")
+      [user_agent] =
+        Browser.new("http://localhost:4001", user_agent_suffix: "/glorp")
+        |> Click.navigate("/info")
+        |> Click.find_first("user-agent")
+        |> Click.text()
+
+      assert user_agent =~ ~r|.*/glorp$|
     end
   end
 end
