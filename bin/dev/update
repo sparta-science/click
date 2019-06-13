@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -ex
+
+git pull --rebase
