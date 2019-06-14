@@ -2,6 +2,7 @@ defmodule Click do
   alias Click.Browser
   alias Click.Chrome
   alias Click.DomNode
+  alias Click.NodeDescription
 
   def start(_type, _args) do
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
@@ -40,17 +41,16 @@ defmodule Click do
     end
   end
 
-  def text(nodes) when is_list(nodes) do
-    nodes
-    |> Enum.map(&Chrome.describe_node(&1, -1))
-    |> Enum.map(& &1["children"])
-    |> List.flatten()
-    |> Enum.filter(&(&1["nodeName"] == "#text"))
-    |> Enum.map(& &1["nodeValue"])
-  end
+  def text(node_or_nodes, depth \\ -1)
 
-  def text(nil), do: nil
-  def text(node), do: [node] |> text() |> List.first()
+  def text(nodes, depth) when is_list(nodes),
+    do: nodes |> Enum.map(&text(&1, depth))
+
+  def text(nil, _depth),
+    do: nil
+
+  def text(node, depth) when is_integer(depth),
+    do: node |> Chrome.describe_node(depth) |> NodeDescription.extract_text() |> Enum.map(&String.trim/1) |> Enum.join(" ")
 
   #
 
@@ -59,16 +59,4 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
-
-  #  defp retry(fun, count \\ 10) do
-  #    case fun.() do
-  #      {:ok, result} ->
-  #        {:ok, result}
-  #
-  #      result ->
-  #        if count == 0,
-  #          do: result,
-  #          else: :timer.sleep(100) && IO.write("®") && retry(fun, count - 1)
-  #    end
-  #  end
 end

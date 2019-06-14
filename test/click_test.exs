@@ -75,14 +75,34 @@ defmodule Click.ClickTest do
   end
 
   describe "text" do
-    test "gets the text of a single element" do
-      header = Click.connect() |> Click.find_first("h2") |> Click.text()
-      assert header == "Lorem"
+    test "by default, gets the text of all descendants, joined by a single space" do
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text()
+      assert text == "Start of level 1. Start of level 2. Level 3. End of level 2. End of level 1."
     end
 
-    test "gets the text of multiple  elements" do
-      headers = Click.connect() |> Click.find_all("h2") |> Click.text()
-      assert headers == ["Lorem", "Ipsum"]
+    test "can get the text of any node depth" do
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text(1)
+      assert text == "Start of level 1. End of level 1."
+    end
+
+    test "when given multiple nodes, gets text of each node and its descendants" do
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text()
+
+      assert text == [
+               "Start of level 1. Start of level 2. Level 3. End of level 2. End of level 1.",
+               "Start of level 2. Level 3. End of level 2.",
+               "Level 3."
+             ]
+    end
+
+    test "when given multiple nodes, can get the text for each at any depth" do
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text(1)
+
+      assert text == [
+               "Start of level 1. End of level 1.",
+               "Start of level 2. End of level 2.",
+               "Level 3."
+             ]
     end
 
     test "returns nil when getting the text of no elements" do

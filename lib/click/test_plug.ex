@@ -9,6 +9,7 @@ defmodule Click.TestPlug do
     case conn.request_path do
       "/" -> html(conn, home_page())
       "/attrs" -> html(conn, attrs_page())
+      "/deep" -> html(conn, deep_page())
       "/info" -> html(conn, info_page(conn))
       "/page-two" -> html(conn, page_two())
     end
@@ -29,6 +30,33 @@ defmodule Click.TestPlug do
         <div data-role="bottom">second</div>
         <div>no data role</div>
       </body>
+    """
+  end
+
+  def deep_page() do
+    """
+    <html>
+      <head></head>
+      <body>
+        Hello.
+
+        <div id="level-1">
+          Start of level 1.
+
+          <div id="level-2">
+            Start of level 2.
+
+            <div id="level-3">
+              Level 3.
+            </div>
+
+            End of level 2.
+          </div>
+
+          End of level 1.
+        </div>
+      </body
+    </html>
     """
   end
 
