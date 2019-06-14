@@ -32,17 +32,17 @@ defmodule Click.Browser do
 
   def navigate(%DomNode{base_url: base_url, pid: pid} = node, path) do
     with {:ok, _} <- RPC.Page.enable(pid),
-         :ok <- PageSession.subscribe(pid, "Page.loadEventFired"),
+         :ok <- PageSession.subscribe(pid, "Page.domContentEventFired"),
          url <- URI.merge(base_url, path) |> to_string(),
          {:ok, _} <- RPC.Page.navigate(pid, %{url: url}) do
       receive do
-        {:chrome_remote_interface, "Page.loadEventFired", _response} ->
-          :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
+        {:chrome_remote_interface, "Page.domContentEventFired", _response} ->
+          :ok = PageSession.unsubscribe(pid, "Page.domContentEventFired")
           {:ok, node}
       after
         2_000 ->
-          :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
-          {:error, "Timeout waiting for Page.loadEventFired for navigating to #{url}"}
+          :ok = PageSession.unsubscribe(pid, "Page.domContentEventFired")
+          {:error, "Timeout waiting for Page.domContentEventFired for navigating to #{url}"}
       end
     end
   end
