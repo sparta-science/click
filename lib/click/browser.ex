@@ -2,28 +2,35 @@ defmodule Click.Browser do
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC
   alias ChromeRemoteInterface.Session
-  alias Click.Browser
-
-  defstruct ~w{base_url pid root_node nodes}a
+  alias Click.Node
 
   def new(base_url, opts \\ []) do
-    with browser <- %Browser{base_url: base_url, pid: nil, root_node: nil, nodes: []},
-         {:ok, browser} <- start_session(browser),
-         {:ok, browser} <- update_user_agent(browser, Keyword.get(opts, :user_agent_suffix)),
-         {:ok, browser} <- navigate(browser, "/"),
-         {:ok, browser} <- get_document(browser) do
-      browser
+    with node <- %Node{base_url: base_url, id: nil, pid: nil},
+         {:ok, node} <- start_session(node),
+         {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
+         {:ok, node} <- navigate(node, "/"),
+         {:ok, node} <- get_document(node) do
+      node
     end
   end
 
-  def get_document(%Browser{pid: pid} = browser) do
-    with {:ok, %{"result" => %{"root" => %{"nodeId" => root_node_id}}}} <- RPC.DOM.getDocument(pid),
-         browser <- %{browser | root_node: root_node_id, nodes: [root_node_id]} do
-      {:ok, browser}
+  def start_session(%Node{} = node) do
+    with {:ok, [first_page | _]} <- Session.new(port: 9222) |> Session.list_pages(),
+         {:ok, pid} <- PageSession.start_link(first_page) do
+      {:ok, %{node | pid: pid}}
     end
   end
 
-  def navigate(%Browser{base_url: base_url, pid: pid} = browser, path) do
+  def update_user_agent(browser, nil), do: {:ok, browser}
+
+  def update_user_agent(%Node{pid: pid} = node, suffix) do
+    with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),
+         {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent <> suffix}) do
+      {:ok, node}
+    end
+  end
+
+  def navigate(%Node{base_url: base_url, pid: pid} = node, path) do
     with {:ok, _} <- RPC.Page.enable(pid),
          :ok <- PageSession.subscribe(pid, "Page.loadEventFired"),
          url <- URI.merge(base_url, path) |> to_string(),
@@ -31,7 +38,7 @@ defmodule Click.Browser do
       receive do
         {:chrome_remote_interface, "Page.loadEventFired", _response} ->
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
-          {:ok, browser}
+          {:ok, node}
       after
         2_000 ->
           :ok = PageSession.unsubscribe(pid, "Page.loadEventFired")
@@ -40,19 +47,10 @@ defmodule Click.Browser do
     end
   end
 
-  def start_session(%Browser{} = browser) do
-    with {:ok, [first_page | _]} <- Session.new(port: 9222) |> Session.list_pages(),
-         {:ok, pid} <- PageSession.start_link(first_page) do
-      {:ok, %{browser | pid: pid}}
-    end
-  end
-
-  def update_user_agent(browser, nil), do: {:ok, browser}
-
-  def update_user_agent(%Browser{pid: pid} = browser, suffix) do
-    with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),
-         {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent <> suffix}) do
-      {:ok, browser}
+  def get_document(%Node{pid: pid} = node) do
+    with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid),
+         node <- %{node | id: id} do
+      {:ok, node}
     end
   end
 end

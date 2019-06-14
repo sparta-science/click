@@ -1,54 +1,46 @@
 defmodule Click do
   alias Click.Browser
   alias Click.Chrome
+  alias Click.Node
 
   def start(_type, _args) do
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
 
-  def new_browser(opts \\ []) do
+  def connect(opts \\ []) do
     Browser.new(
       "http://localhost:4001",
       user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
     )
   end
 
-  def attr(browser, attr_name) do
-    with %Browser{pid: pid, nodes: nodes} <- find_all(browser, "[#{attr_name}]"),
-         attributes <- Chrome.get_attributes(pid, nodes) do
-      Enum.map(attributes, &Map.get(&1, attr_name))
+  def attr(nodes, attr_name) do
+    nodes |> List.wrap() |> find_all("[#{attr_name}]") |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
+  end
+
+  def find_all(nodes, query) do
+    nodes |> List.wrap() |> Enum.flat_map(&Chrome.query_selector_all(&1, query))
+  end
+
+  def find_first(nodes, query) do
+    nodes |> find_all(query) |> List.first()
+  end
+
+  def html(nodes) do
+    nodes |> List.wrap() |> Enum.map(&Chrome.get_outer_html(&1))
+  end
+
+  def navigate(%Node{} = node, path) do
+    with {:ok, node} <- Browser.navigate(node, path),
+         {:ok, node} <- Browser.get_document(node) do
+      node
     end
   end
 
-  def find_all(%Browser{pid: pid, nodes: nodes} = browser, query) do
-    %{browser | nodes: Chrome.query_selector_all(pid, nodes, query)}
-  end
-
-  def find_first(browser, query) do
-    browser |> find_all(query) |> first()
-  end
-
-  def first(%Browser{nodes: []} = browser) do
-    browser
-  end
-
-  def first(%Browser{nodes: [first | _]} = browser) do
-    %{browser | nodes: [first]}
-  end
-
-  def html(%Browser{pid: pid, nodes: nodes}) do
-    Chrome.get_outer_html(pid, nodes)
-  end
-
-  def navigate(browser, path) do
-    with {:ok, browser} <- Browser.navigate(browser, path),
-         {:ok, browser} <- Browser.get_document(browser) do
-      browser
-    end
-  end
-
-  def text(%Browser{pid: pid, nodes: nodes}) do
-    Chrome.describe_node(pid, nodes, -1)
+  def text(nodes) do
+    nodes
+    |> List.wrap()
+    |> Enum.map(&Chrome.describe_node(&1, -1))
     |> Enum.map(& &1["children"])
     |> List.flatten()
     |> Enum.filter(&(&1["nodeName"] == "#text"))
