@@ -3,7 +3,7 @@ defmodule Click.ClickTest do
 
   import Click.TestSupport.Html, only: [normalize: 1]
 
-  alias Click.Node
+  alias Click.DomNode
   alias Click.TestPlug
 
   describe "attr" do
@@ -36,7 +36,7 @@ defmodule Click.ClickTest do
   describe "find_first" do
     test "gets the first matching node" do
       node = Click.connect() |> Click.find_first("h2")
-      assert %Node{} = node
+      assert %DomNode{} = node
       assert node |> Click.text() == "Lorem"
     end
 

@@ -1,7 +1,7 @@
 defmodule Click do
   alias Click.Browser
   alias Click.Chrome
-  alias Click.Node
+  alias Click.DomNode
 
   def start(_type, _args) do
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
@@ -33,7 +33,7 @@ defmodule Click do
   def html(nil), do: nil
   def html(node), do: [node] |> html() |> List.first()
 
-  def navigate(%Node{} = node, path) do
+  def navigate(%DomNode{} = node, path) do
     with {:ok, node} <- Browser.navigate(node, path),
          {:ok, node} <- Browser.get_document(node) do
       node
