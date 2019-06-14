@@ -26,9 +26,12 @@ defmodule Click do
     nodes |> find_all(query) |> List.first()
   end
 
-  def html(nodes) do
-    nodes |> List.wrap() |> Enum.map(&Chrome.get_outer_html(&1))
+  def html(nodes) when is_list(nodes) do
+    nodes |> Enum.map(&Chrome.get_outer_html(&1))
   end
+
+  def html(nil), do: nil
+  def html(node), do: [node] |> html() |> List.first()
 
   def navigate(%Node{} = node, path) do
     with {:ok, node} <- Browser.navigate(node, path),
@@ -37,15 +40,17 @@ defmodule Click do
     end
   end
 
-  def text(nodes) do
+  def text(nodes) when is_list(nodes) do
     nodes
-    |> List.wrap()
     |> Enum.map(&Chrome.describe_node(&1, -1))
     |> Enum.map(& &1["children"])
     |> List.flatten()
     |> Enum.filter(&(&1["nodeName"] == "#text"))
     |> Enum.map(& &1["nodeValue"])
   end
+
+  def text(nil), do: nil
+  def text(node), do: [node] |> text() |> List.first()
 
   #
 
