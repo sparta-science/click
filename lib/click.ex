@@ -15,24 +15,26 @@ defmodule Click do
     )
   end
 
-  def attr(nodes, attr_name) do
-    nodes |> List.wrap() |> find_all("[#{attr_name}]") |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
-  end
+  def attr(nodes, attr_name),
+    do: nodes |> List.wrap() |> find_all("[#{attr_name}]") |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
 
-  def find_all(nodes, query) do
-    nodes |> List.wrap() |> Enum.flat_map(&Chrome.query_selector_all(&1, query))
-  end
+  def filter(nodes, text: text),
+    do: nodes |> Enum.filter(&(text(&1, 1) == text))
 
-  def find_first(nodes, query) do
-    nodes |> find_all(query) |> List.first()
-  end
+  def find_all(nodes, query),
+    do: nodes |> List.wrap() |> Enum.flat_map(&Chrome.query_selector_all(&1, query))
 
-  def html(nodes) when is_list(nodes) do
-    nodes |> Enum.map(&Chrome.get_outer_html(&1))
-  end
+  def find_first(nodes, query),
+    do: nodes |> find_all(query) |> List.first()
 
-  def html(nil), do: nil
-  def html(node), do: [node] |> html() |> List.first()
+  def html(nodes) when is_list(nodes),
+    do: nodes |> Enum.map(&Chrome.get_outer_html(&1))
+
+  def html(nil),
+    do: nil
+
+  def html(node),
+    do: [node] |> html() |> List.first()
 
   def navigate(%DomNode{} = node, path) do
     with {:ok, node} <- Browser.navigate(node, path),

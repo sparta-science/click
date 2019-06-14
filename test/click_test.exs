@@ -25,6 +25,14 @@ defmodule Click.ClickTest do
     end
   end
 
+  describe "filter" do
+    test "can filter a list of nodes by their text contents" do
+      nodes = Click.connect() |> Click.find_all("h2") |> Click.filter(text: "Ipsum")
+      assert length(nodes) == 1
+      assert Click.text(nodes) == ["Ipsum"]
+    end
+  end
+
   describe "find_all" do
     test "gets all the matching nodes" do
       nodes = Click.connect() |> Click.find_all("h2")
