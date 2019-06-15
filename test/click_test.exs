@@ -13,6 +13,13 @@ defmodule Click.ClickTest do
     end
   end
 
+  describe "click" do
+    @tag :skip
+    test "sends mouse click events" do
+      # https://medium.com/@aslushnikov/automating-clicks-in-chromium-a50e7f01d3fb
+    end
+  end
+
   describe "connect" do
     test "can append metadata to the user agent string" do
       user_agent =
