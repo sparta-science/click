@@ -11,6 +11,7 @@ defmodule Click.TestPlug do
       "/attrs" -> html(conn, attrs_page())
       "/deep" -> html(conn, deep_page())
       "/info" -> html(conn, info_page(conn))
+      "/links" -> html(conn, links_page(conn))
       "/page-two" -> html(conn, page_two())
     end
   end
@@ -81,6 +82,19 @@ defmodule Click.TestPlug do
       <head></head>
       <body>
         <user-agent>#{user_agent}</user-agent>
+      </body>
+    </html>
+    """
+  end
+
+  def links_page(conn) do
+    """
+    <html>
+      <head></head>
+      <body>
+        <div><a id="page-two" href="/page-two">Page Two</a></div>
+        <div style="height: 5000px">Tall content</div>
+        <div><a id="home" href="/">Home</a></div>
       </body>
     </html>
     """

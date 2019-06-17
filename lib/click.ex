@@ -1,6 +1,7 @@
 defmodule Click do
   alias Click.Browser
   alias Click.Chrome
+  alias Click.Quad
   alias Click.DomNode
   alias Click.NodeDescription
 
@@ -19,6 +20,41 @@ defmodule Click do
 
   def attr(nodes, attr_name),
     do: nodes |> List.wrap() |> find_all("[#{attr_name}]") |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
+
+  def click(%DomNode{pid: pid} = node) do
+    :ok = ChromeRemoteInterface.PageSession.subscribe(pid, "Page.frameNavigated")
+
+    [x, y] = node |> Chrome.get_box_model() |> Quad.center()
+
+    node |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none")
+    node |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left")
+    node |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
+
+    receive do
+      {:chrome_remote_interface, "Page.frameNavigated", _response} ->
+        ChromeRemoteInterface.PageSession.unsubscribe(pid, "Page.frameNavigated")
+        {:ok, node} = wait_for_and_get_document(node)
+        node
+    after
+      500 ->
+        ChromeRemoteInterface.PageSession.unsubscribe(pid, "Page.frameNavigated")
+        IO.puts("no frame navigated")
+    end
+  end
+
+  def wait_for_and_get_document(%DomNode{pid: pid} = node) do
+    :ok = ChromeRemoteInterface.PageSession.subscribe(pid, "Page.domContentEventFired")
+
+    receive do
+      {:chrome_remote_interface, "Page.domContentEventFired", _response} ->
+        :ok = ChromeRemoteInterface.PageSession.unsubscribe(pid, "Page.domContentEventFired")
+        Browser.get_document(node)
+    after
+      2_000 ->
+        :ok = ChromeRemoteInterface.PageSession.unsubscribe(pid, "Page.domContentEventFired")
+        {:error, "Timeout waiting for Page.domContentEventFired"}
+    end
+  end
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1, 1) == text))

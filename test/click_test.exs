@@ -1,4 +1,4 @@
-defmodule Click.ClickTest do
+defmodule ClickTest do
   use ExUnit.Case, async: false
 
   import Click.TestSupport.Html, only: [normalize: 1]
@@ -8,15 +8,27 @@ defmodule Click.ClickTest do
 
   describe "attr" do
     test "gets the specified attr" do
+      # todo: should just return the attr from the passed-in nodes
       attrs = Click.connect() |> Click.navigate("/attrs") |> Click.attr("data-role")
       assert attrs == ["top", "inner", "bottom"]
     end
   end
 
   describe "click" do
-    @tag :skip
+    # https://medium.com/@aslushnikov/automating-clicks-in-chromium-a50e7f01d3fb
+
     test "sends mouse click events" do
-      # https://medium.com/@aslushnikov/automating-clicks-in-chromium-a50e7f01d3fb
+      links_page = Click.connect() |> Click.navigate("/links")
+      links_page |> Click.find_first("a#page-two") |> Click.click()
+      {:ok, page_two} = Click.Browser.get_document(links_page)
+      assert normalize(Click.html(page_two)) == normalize(TestPlug.page_two())
+    end
+
+    test "finds and clicks links that are off the bottom of the page" do
+      links_page = Click.connect() |> Click.navigate("/links")
+      links_page |> Click.find_first("a#home") |> Click.click()
+      {:ok, home} = Click.Browser.get_document(links_page)
+      assert normalize(Click.html(home)) == normalize(TestPlug.home_page())
     end
   end
 
