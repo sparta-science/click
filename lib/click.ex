@@ -4,6 +4,8 @@ defmodule Click do
   alias Click.DomNode
   alias Click.NodeDescription
 
+  @full_depth -1
+
   def start(_type, _args) do
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
@@ -43,7 +45,7 @@ defmodule Click do
     end
   end
 
-  def text(node_or_nodes, depth \\ -1)
+  def text(node_or_nodes, depth \\ @full_depth)
 
   def text(nodes, depth) when is_list(nodes),
     do: nodes |> Enum.map(&text(&1, depth))
