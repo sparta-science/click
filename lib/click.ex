@@ -18,11 +18,8 @@ defmodule Click do
     )
   end
 
-  def attr(nodes, attr_name) when is_list(nodes),
-    do: nodes |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
-
-  def attr(node, attr_name),
-    do: node |> Chrome.get_attributes() |> Map.get(attr_name)
+  def attr(nodes, attr_name),
+    do: nodes |> with_nodes(&(Chrome.get_attributes(&1) |> Map.get(attr_name)))
 
   def click(%DomNode{pid: pid} = node) do
     :ok = ChromeRemoteInterface.PageSession.subscribe(pid, "Page.frameNavigated")
@@ -68,14 +65,8 @@ defmodule Click do
   def find_first(nodes, query),
     do: nodes |> find_all(query) |> List.first()
 
-  def html(nodes) when is_list(nodes),
-    do: nodes |> Enum.map(&Chrome.get_outer_html(&1))
-
-  def html(nil),
-    do: nil
-
-  def html(node),
-    do: [node] |> html() |> List.first()
+  def html(nodes),
+    do: nodes |> with_nodes(&Chrome.get_outer_html(&1))
 
   def navigate(%DomNode{} = node, path) do
     with {:ok, node} <- Browser.navigate(node, path),
@@ -84,16 +75,8 @@ defmodule Click do
     end
   end
 
-  def text(node_or_nodes, depth \\ @full_depth)
-
-  def text(nodes, depth) when is_list(nodes),
-    do: nodes |> Enum.map(&text(&1, depth))
-
-  def text(nil, _depth),
-    do: nil
-
-  def text(node, depth) when is_integer(depth),
-    do: node |> Chrome.describe_node(depth) |> NodeDescription.extract_text() |> Enum.map(&String.trim/1) |> Enum.join(" ")
+  def text(nodes, depth \\ @full_depth),
+    do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
 
   #
 
@@ -102,4 +85,13 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
+
+  defp with_nodes(nil, _fun),
+    do: nil
+
+  defp with_nodes(nodes, fun) when is_list(nodes),
+    do: nodes |> Enum.map(fun)
+
+  defp with_nodes(node, fun),
+    do: fun.(node)
 end

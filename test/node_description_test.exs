@@ -91,6 +91,14 @@ defmodule Click.NodeDescriptionTest do
     test "extracts all the text" do
       text = NodeDescription.extract_text(@description)
 
+      assert text == "Level 1. Start of level 2. Level 3. End of level 2. End of level 1."
+    end
+  end
+
+  describe "extract_raw_text" do
+    test "extracts each text node" do
+      text = NodeDescription.extract_raw_text(@description)
+
       assert text == [
                "\n      Level 1.\n\n      ",
                "\n        Start of level 2.\n\n        ",
