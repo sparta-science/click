@@ -18,8 +18,11 @@ defmodule Click do
     )
   end
 
-  def attr(nodes, attr_name),
-    do: nodes |> List.wrap() |> find_all("[#{attr_name}]") |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
+  def attr(nodes, attr_name) when is_list(nodes),
+    do: nodes |> Enum.map(&Chrome.get_attributes(&1)) |> Enum.map(& &1[attr_name])
+
+  def attr(node, attr_name),
+    do: node |> Chrome.get_attributes() |> Map.get(attr_name)
 
   def click(%DomNode{pid: pid} = node) do
     :ok = ChromeRemoteInterface.PageSession.subscribe(pid, "Page.frameNavigated")

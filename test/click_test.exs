@@ -7,10 +7,11 @@ defmodule ClickTest do
   alias Click.TestPlug
 
   describe "attr" do
-    test "gets the specified attr" do
-      # todo: should just return the attr from the passed-in nodes
-      attrs = Click.connect() |> Click.navigate("/attrs") |> Click.attr("data-role")
-      assert attrs == ["top", "inner", "bottom"]
+    test "gets the specified attrs from the passed in nodes" do
+      root = Click.connect() |> Click.navigate("/attrs")
+
+      assert root |> Click.find_all("div") |> Click.attr("data-role") == ["top", "inner", "bottom", nil]
+      assert root |> Click.find_first("div.topper") |> Click.attr("data-role") == "top"
     end
   end
 
