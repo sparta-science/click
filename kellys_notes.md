@@ -15,6 +15,10 @@ proxy's to those chrome servers. You can talk to those servers via the proxies u
 
 Each test would launch a chromium and establish a session via **ChroxyClient.page_session!(%{host: "localhost", port: 1330})**
 
+Or, a pool of chromiums could be initialized and managed with pool boy.
+
+Another idea is to **learn from Wallaby**. Wallaby also starts browsers and manages them with pool boy.
+
 Click Design
 ------------
 
@@ -59,5 +63,6 @@ Definitions
 [4]: https://github.com/GoogleChrome/puppeteer
 [5]: https://chromedevtools.github.io/devtools-protocol/
 
-[^1]: Something is currently a DomNode. It could be replaced by something else, possibly a list of selectors. 
+[^1]: "Something" is currently a DomNode. It could be replaced by something else, possibly a list of selectors and 
+      filters.
 
