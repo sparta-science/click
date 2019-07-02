@@ -1,4 +1,4 @@
-defmodule Click.TestPlug do
+defmodule Click.TestSupport.TestPlug do
   import Plug.Conn
 
   def init(options) do
@@ -87,7 +87,7 @@ defmodule Click.TestPlug do
     """
   end
 
-  def links_page(conn) do
+  def links_page(_conn) do
     """
     <html>
       <head></head>

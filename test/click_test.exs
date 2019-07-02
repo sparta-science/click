@@ -4,7 +4,7 @@ defmodule ClickTest do
   import Click.TestSupport.Html, only: [normalize: 1]
 
   alias Click.DomNode
-  alias Click.TestPlug
+  alias Click.TestSupport.TestPlug
 
   describe "attr" do
     test "gets the specified attrs from the passed in nodes" do
