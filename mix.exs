@@ -26,6 +26,9 @@ defmodule Click.MixProject do
     [
       {:chrome_remote_interface, "~> 0.3.0"},
 
+      # Dev-only
+      {:ex_doc, "~> 0.20.2", only: :dev},
+
       # Test-only
       {:floki, "~> 0.21.0", only: :test},
       {:plug_cowboy, "~> 2.0", only: :test}
