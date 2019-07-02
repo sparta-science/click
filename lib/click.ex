@@ -2,6 +2,7 @@ defmodule Click do
   alias Click.Browser
   alias Click.Chrome
   alias Click.DomNode
+  alias Click.Extra
   alias Click.NodeDescription
 
   @full_depth -1
@@ -11,10 +12,12 @@ defmodule Click do
   end
 
   def connect(opts \\ []) do
-    Browser.new(
-      "http://localhost:4001",
-      user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
-    )
+    Extra.WaitUntil.wait_until(fn ->
+      Browser.new(
+        "http://localhost:4001",
+        user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
+      )
+    end)
   end
 
   def attr(nodes, attr_name),

@@ -48,7 +48,7 @@ Modules
 Definitions
 -----------
 
-* [chrome_remote_interface][1]: Elixir Client to the Chrome Debugging Protocol
+* [chrome_remote_interface][1]: Elixir Client to the Chrome DevTools Protocol
 * [chroxy][2]: Proxy service to mediate access to Chrome that is run in headless mode. Can be used with 
   chrome_remote_interface to control chromes.
 * [chroxy_client][3]: Chroxy Chrome Server client for Chroxy which is intended to be used in conjunction with 

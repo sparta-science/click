@@ -2,12 +2,13 @@
 
 Acceptance testing tool that uses Chrome DevTools Protocol (CDP) to interact with Chrome.
 
-## Run Chromium
+## Development
 
-Currently, you need to run Chromium manually:
+Currently, to run the Click test suite, you need to run Chromium manually.  
 
 1. Install: `brew bundle`
 2. Run: `priv/run_chromium.sh`
+3. Test: `mix test`
 
 
 ## Installation
@@ -22,6 +23,8 @@ def deps do
   ]
 end
 ```
+
+For application testing, Click can be started in AcceptanceCase. Take a look at Glacier Point.
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can

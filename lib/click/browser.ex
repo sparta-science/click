@@ -13,6 +13,8 @@ defmodule Click.Browser do
          {:ok, node} <- navigate(node, "/"),
          {:ok, node} <- get_document(node) do
       node
+    else
+      e -> raise "Unable to start"
     end
   end
 

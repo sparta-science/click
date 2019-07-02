@@ -2,7 +2,6 @@ defmodule Click.Chrome do
   alias ChromeRemoteInterface.RPC
   alias Click.Extra
   alias Click.DomNode
-  alias Click.Quad
 
   def describe_node(%DomNode{id: id, pid: pid}, depth) do
     with {:ok, %{"result" => %{"node" => description}}} <- RPC.DOM.describeNode(pid, %{"nodeId" => id, "depth" => depth}) do
@@ -10,7 +9,7 @@ defmodule Click.Chrome do
     end
   end
 
-  def dispatch_mouse_event(%DomNode{id: id, pid: pid}, event, x, y, button) do
+  def dispatch_mouse_event(%DomNode{id: _id, pid: pid}, event, x, y, button) do
     with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchMouseEvent(pid, %{"type" => event, "x" => x, "y" => y, "button" => button, "clickCount" => 1}) do
       :ok
     end
