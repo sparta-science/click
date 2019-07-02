@@ -14,7 +14,7 @@ defmodule Click.Browser do
          {:ok, node} <- get_document(node) do
       node
     else
-      e -> raise "Unable to start"
+      _e -> raise "Unable to start"
     end
   end
 
