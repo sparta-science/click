@@ -14,7 +14,7 @@ defmodule Click do
   def connect(opts \\ []) do
     Extra.WaitUntil.wait_until(fn ->
       Browser.new(
-        "http://localhost:4001",
+        "http://localhost:4009",
         user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
       )
     end)
