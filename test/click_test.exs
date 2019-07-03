@@ -43,6 +43,11 @@ defmodule ClickTest do
 
       assert user_agent =~ ~r|.*/BeamMetadata \(g2gCZAACdjFtAAAABWdsb3Jw\)$|
     end
+
+    test "can specify a base url" do
+      dom_node = Click.connect(base_url: "http://localhost:4009")
+      assert dom_node.base_url == "http://localhost:4009"
+    end
   end
 
   describe "filter" do

@@ -6,7 +6,7 @@ defmodule Click.BrowserTest do
   describe "new" do
     test "user agent" do
       user_agent =
-        Browser.new("http://localhost:4009", user_agent_suffix: "/glorp")
+        Browser.new("http://localhost:4001", user_agent_suffix: "/glorp")
         |> Click.navigate("/info")
         |> Click.find_first("user-agent")
         |> Click.text()
