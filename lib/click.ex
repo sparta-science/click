@@ -12,7 +12,7 @@ defmodule Click do
   end
 
   def connect(opts \\ []) do
-    Extra.WaitUntil.wait_until(fn ->
+    wait_until(fn ->
       Browser.new(
         "http://localhost:4009",
         user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
@@ -47,6 +47,30 @@ defmodule Click do
 
   def text(nodes, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
+
+  def wait_until(fun, opts \\ []) when is_function(fun) and is_list(opts) do
+    start_time = now_ms()
+
+    try do
+      fun.()
+    rescue
+      e -> process_error(fun, start_time, e, opts)
+    end
+  end
+
+  defp process_error(fun, start_time, error, opts) do
+    timeout = Keyword.get(opts, :timeout, 500)
+
+    if timeout > 0 do
+      :timer.sleep(5)
+      elapsed = now_ms() - start_time
+      wait_until(fun, timeout: max(0, timeout - elapsed))
+    else
+      raise error
+    end
+  end
+
+  def now_ms(), do: DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
   #
 
