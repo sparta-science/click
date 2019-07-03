@@ -6,9 +6,9 @@ defmodule Click.BrowserManager do
   def start(args), do: start_supervised({__MODULE__, args}, restart: :temporary)
   def start_link(args), do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
 
-  def init(_init_arg) do
+  def init(args) do
     wrapper_script = "#{Path.dirname(__ENV__.file)}/../../priv/stdin_watcher_wrapper"
-    chromium_path = "/Applications/Chromium.app/Contents/MacOS/Chromium"
+    browser_path = Keyword.get(args, :browser_path)
 
     port =
       Port.open({:spawn_executable, wrapper_script}, [
@@ -17,7 +17,7 @@ defmodule Click.BrowserManager do
         :use_stdio,
         :exit_status,
         args: [
-          chromium_path,
+          browser_path,
           "--headless",
           "--remote-debugging-port=9222",
           "--window-size=1300x10000"
