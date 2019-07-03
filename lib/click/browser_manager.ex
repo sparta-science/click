@@ -24,6 +24,17 @@ defmodule Click.BrowserManager do
         ]
       ])
 
-    {:ok, port}
+    {:ok, %{port: port, browser_path: browser_path}}
+  end
+
+  def handle_info(message, state) do
+    IO.inspect(message, label: "message")
+    IO.inspect(state, label: "state")
+    {:noreply, state}
+  end
+
+  def terminate(reason, state) do
+    IO.inspect(reason, label: "reason")
+    IO.inspect(state, label: "state")
   end
 end
