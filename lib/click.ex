@@ -2,7 +2,6 @@ defmodule Click do
   alias Click.Browser
   alias Click.Chrome
   alias Click.DomNode
-  alias Click.Extra
   alias Click.NodeDescription
 
   @full_depth -1
