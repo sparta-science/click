@@ -9,7 +9,7 @@ defmodule Click.Browser do
   def new!(base_url, opts \\ []) do
     case new(base_url, opts) do
       {:ok, dom_node} -> dom_node
-      {:error, message} -> raise inspect(message)
+      {:error, message} -> raise "Click could not connect to #{base_url}: #{inspect(message)}"
     end
   end
 
