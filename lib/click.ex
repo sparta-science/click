@@ -12,7 +12,7 @@ defmodule Click do
 
   def connect(opts \\ []) do
     wait_until(fn ->
-      Browser.new(
+      Browser.new!(
         opts |> Keyword.get(:base_url, "http://localhost:4001"),
         user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
       )

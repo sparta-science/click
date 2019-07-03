@@ -6,15 +6,20 @@ defmodule Click.Browser do
   alias Click.DomNode
   alias Click.Quad
 
+  def new!(base_url, opts \\ []) do
+    case new(base_url, opts) do
+      {:ok, dom_node} -> dom_node
+      {:error, message} -> raise inspect(message)
+    end
+  end
+
   def new(base_url, opts \\ []) do
     with node <- %DomNode{base_url: base_url, id: nil, pid: nil},
          {:ok, node} <- start_session(node),
          {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
          {:ok, node} <- navigate(node, "/"),
          {:ok, node} <- get_document(node) do
-      node
-    else
-      _e -> raise "Unable to start"
+      {:ok, node}
     end
   end
 
