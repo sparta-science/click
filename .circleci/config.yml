@@ -1,0 +1,76 @@
+version: 2
+
+defaults: &defaults
+  docker:
+    - image: spartascience/cci-erlang-elixir-node-container:0.0.14
+  working_directory: /home/circleci/click
+  environment:
+    - MIX_ENV: "test"
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git fetch --tags --force
+
+      - run:
+          name: Locally tag build
+          command: git -c user.name="Sparta CI" -c user.email="developers+circle-ci@spartascience.com" tag -a "v1.${CIRCLE_BUILD_NUM}.0" -m "v1.${CIRCLE_BUILD_NUM}.0"
+
+      - run:
+          name: Create version file
+          command: echo "1.${CIRCLE_BUILD_NUM}.0" >> version
+
+      - restore_cache:
+          key: el-capitan-v1-{{ .Environment.CACHE_VERSION }}-{{ .Branch }}-{{ checksum "/home/circleci/click/mix.lock" }}" }}
+
+      - run:
+          name: Get dependencies
+          command: mix deps.get
+
+      - run:
+          name: Compile
+          command: mix compile
+
+      - run:
+          name: Compile for production
+          command: MIX_ENV=prod mix compile
+
+      - run:
+          name: Run tests
+          command: mix test
+
+      - save_cache:
+          key: el-capitan-v1-{{ .Environment.CACHE_VERSION }}-{{ .Branch }}-{{ checksum "/home/circleci/click/mix.lock" }}" }}
+          paths:
+            - /home/circleci/click/deps
+            - /home/circleci/click/_build
+
+      - store_test_results:
+          path: /home/circleci/click/_build/test/lib/click
+
+      - run:
+          name: Clear ssh keys
+          command: ssh-add -D
+
+      - add_ssh_keys:
+          fingerprints:
+            - "4e:2a:80:99:03:ef:20:f4:c4:d3:e1:06:62:53:f3:d9"
+
+      - run:
+          name: Avoid hosts unknown for github
+          command: echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Push tags
+          command: |
+            ssh-add ~/.ssh/id_rsa_4e2a809903ef20f4c4d3e1066253f3d9
+            git push --tags --verbose
+
+#      - run:
+#          name: Push to hex.pm
+#          command: |
+#            mix hex.config api_key ${HEX_PM_SPARTA_ORG_API_KEY}
+#            mix hex.organization auth sparta --key ${HEX_PM_SPARTA_ORG}
+#            mix hex.publish --organization sparta --yes package
