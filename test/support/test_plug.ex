@@ -10,6 +10,7 @@ defmodule Click.TestSupport.TestPlug do
       "/" -> html(conn, home_page())
       "/attrs" -> html(conn, attrs_page())
       "/deep" -> html(conn, deep_page())
+      "/form" -> html(conn, form_page())
       "/info" -> html(conn, info_page(conn))
       "/links" -> html(conn, links_page(conn))
       "/page-two" -> html(conn, page_two())
@@ -56,6 +57,19 @@ defmodule Click.TestSupport.TestPlug do
 
           End of level 1.
         </div>
+      </body
+    </html>
+    """
+  end
+
+  def form_page() do
+    """
+    <html>
+      <head></head>
+      <body>
+        <form>
+          <input type="checkbox" id="checkbox-1">
+        </form>
       </body
     </html>
     """

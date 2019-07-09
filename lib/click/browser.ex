@@ -17,14 +17,14 @@ defmodule Click.Browser do
          {:ok, node} <- start_session(node),
          {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
          {:ok, node} <- navigate(node, "/"),
-         {:ok, node} <- get_document(node) do
+         {:ok, node} <- get_current_document(node) do
       {:ok, node}
     end
   end
 
   #
 
-  def get_document(%DomNode{pid: pid} = node) do
+  def get_current_document(%DomNode{pid: pid} = node) do
     with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid),
          node <- %{node | id: id} do
       {:ok, node}
@@ -52,10 +52,6 @@ defmodule Click.Browser do
   end
 
   def simulate_click(%DomNode{} = node) do
-    event = "Page.frameNavigated"
-
-    subscribe(node, event)
-
     Chrome.scroll_into_view(node)
 
     [x, y] = node |> Chrome.get_box_model() |> Quad.center()
@@ -64,19 +60,29 @@ defmodule Click.Browser do
     node |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left")
     node |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
 
+    node
+  end
+
+  def wait_for_navigation(%DomNode{} = node, fun) do
+    event = "Page.frameNavigated"
+
+    subscribe(node, event)
+
+    fun.()
+
     receive do
       {:chrome_remote_interface, event, _response} ->
         unsubscribe(node, event)
-        {:ok, node} = wait_for_and_get_document(node)
+        {:ok, node} = wait_for_and_get_current_document(node)
         node
     after
       500 ->
         unsubscribe(node, event)
-        {:error, "click did not result in a page navigation"}
+        {:error, "timeout while waiting for page navigation"}
     end
   end
 
-  def wait_for_and_get_document(%DomNode{} = node) do
+  def wait_for_and_get_current_document(%DomNode{} = node) do
     event = "Page.domContentEventFired"
 
     subscribe(node, event)
@@ -84,7 +90,7 @@ defmodule Click.Browser do
     receive do
       {:chrome_remote_interface, event, _response} ->
         unsubscribe(node, event)
-        get_document(node)
+        get_current_document(node)
     after
       2_000 ->
         unsubscribe(node, event)

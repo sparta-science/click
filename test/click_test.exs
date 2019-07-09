@@ -1,5 +1,5 @@
 defmodule ClickTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   import Click.TestSupport.Html, only: [normalize: 1]
 
@@ -18,18 +18,30 @@ defmodule ClickTest do
   describe "click" do
     # https://medium.com/@aslushnikov/automating-clicks-in-chromium-a50e7f01d3fb
 
-    test "sends mouse click events" do
+    test "sends mouse click events and waits for navigation" do
       links_page = Click.connect() |> Click.navigate("/links")
-      links_page |> Click.find_first("a#page-two") |> Click.click()
-      {:ok, page_two} = Click.Browser.get_document(links_page)
+      page_two = links_page |> Click.find_first("a#page-two") |> Click.click(:wait_for_navigation)
+      assert normalize(Click.html(page_two)) == normalize(TestPlug.page_two())
+
+      {:ok, page_two} = Click.Browser.get_current_document(links_page)
       assert normalize(Click.html(page_two)) == normalize(TestPlug.page_two())
     end
 
     test "finds and clicks links that are off the bottom of the page" do
       links_page = Click.connect() |> Click.navigate("/links")
-      links_page |> Click.find_first("a#home") |> Click.click()
-      {:ok, home} = Click.Browser.get_document(links_page)
+      home = links_page |> Click.find_first("a#home") |> Click.click(:wait_for_navigation)
       assert normalize(Click.html(home)) == normalize(TestPlug.home_page())
+
+      {:ok, home} = Click.Browser.get_current_document(links_page)
+      assert normalize(Click.html(home)) == normalize(TestPlug.home_page())
+    end
+
+    test "can click on things that don't result in page navigation" do
+      form_page = Click.connect() |> Click.navigate("/form")
+      first_checkbox = form_page |> Click.find_first("#checkbox-1:not(:checked)")
+      clicked = first_checkbox |> Click.click()
+      assert clicked == first_checkbox
+      form_page |> Click.find_first("#checkbox-1:checked") |> assert
     end
   end
 

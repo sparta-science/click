@@ -25,6 +25,9 @@ defmodule Click do
   def click(%DomNode{} = node),
     do: node |> Browser.simulate_click()
 
+  def click(%DomNode{} = node, :wait_for_navigation),
+    do: Browser.wait_for_navigation(node, fn -> node |> Browser.simulate_click() end)
+
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1, 1) == text))
 
@@ -39,7 +42,7 @@ defmodule Click do
 
   def navigate(%DomNode{} = node, path) do
     with {:ok, node} <- Browser.navigate(node, path),
-         {:ok, node} <- Browser.get_document(node) do
+         {:ok, node} <- Browser.get_current_document(node) do
       node
     end
   end
