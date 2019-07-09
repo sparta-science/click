@@ -6,91 +6,16 @@ defmodule Click.TestSupport.TestPlug do
   end
 
   def call(conn, _opts) do
-    case conn.request_path do
-      "/" -> html(conn, home_page())
-      "/attrs" -> html(conn, attrs_page())
-      "/deep" -> html(conn, deep_page())
-      "/form" -> html(conn, form_page())
-      "/info" -> html(conn, info_page(conn))
-      "/links" -> html(conn, links_page(conn))
-      "/page-two" -> html(conn, page_two())
-    end
+    html(conn, load_page(conn.request_path, conn))
   end
 
-  defp html(conn, s) do
-    conn |> put_resp_content_type("text/html") |> send_resp(200, s)
+  def load_page(path, conn \\ nil)
+
+  def load_page("/", conn) do
+    load_page("/home", conn)
   end
 
-  def attrs_page() do
-    """
-    <html>
-      <head></head>
-      <body>
-        <div class="topper" data-role="top" id="the-top">
-          <div data-role="inner">inner</div>
-        </div>
-        <div data-role="bottom">second</div>
-        <div>no data role</div>
-      </body>
-    """
-  end
-
-  def deep_page() do
-    """
-    <html>
-      <head></head>
-      <body>
-        Hello.
-
-        <div id="level-1">
-          Start of level 1.
-
-          <div id="level-2">
-            Start of level 2.
-
-            <div id="level-3">
-              Level 3.
-            </div>
-
-            End of level 2.
-          </div>
-
-          End of level 1.
-        </div>
-      </body
-    </html>
-    """
-  end
-
-  def form_page() do
-    """
-    <html>
-      <head></head>
-      <body>
-        <form>
-          <input type="checkbox" id="checkbox-1">
-          <input type="text" value="">
-          <input type="text" value="">
-        </form>
-      </body
-    </html>
-    """
-  end
-
-  def home_page() do
-    """
-    <html>
-      <head></head>
-      <body>
-        <h1>Hello, world!</h1>
-        <h2>Lorem</h2>
-        <h2>Ipsum</h2>
-      </body>
-    </html>
-    """
-  end
-
-  def info_page(conn) do
+  def load_page("/info", conn) do
     user_agent = Plug.Conn.get_req_header(conn, "user-agent")
 
     """
@@ -103,27 +28,11 @@ defmodule Click.TestSupport.TestPlug do
     """
   end
 
-  def links_page(_conn) do
-    """
-    <html>
-      <head></head>
-      <body>
-        <div><a id="page-two" href="/page-two">Page Two</a></div>
-        <div style="height: 5000px">Tall content</div>
-        <div><a id="home" href="/">Home</a></div>
-      </body>
-    </html>
-    """
+  def load_page("/" <> file, _conn) do
+    File.read!("test/support/fixtures/#{file}.html")
   end
 
-  def page_two() do
-    """
-    <html>
-      <head></head>
-      <body>
-        <h1>Page Two</h1>
-      </body>
-    </html>
-    """
+  defp html(conn, s) do
+    conn |> put_resp_content_type("text/html") |> send_resp(200, s)
   end
 end

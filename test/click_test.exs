@@ -28,19 +28,19 @@ defmodule ClickTest do
     test "sends mouse click events and waits for navigation" do
       links_page = Click.connect() |> Click.navigate("/links")
       page_two = links_page |> Click.find_first("a#page-two") |> Click.click(:wait_for_navigation)
-      assert normalize(Click.html(page_two)) == normalize(TestPlug.page_two())
+      assert normalize(Click.html(page_two)) == normalize(TestPlug.load_page("/page-two"))
 
       {:ok, page_two} = Click.Browser.get_current_document(links_page)
-      assert normalize(Click.html(page_two)) == normalize(TestPlug.page_two())
+      assert normalize(Click.html(page_two)) == normalize(TestPlug.load_page("/page-two"))
     end
 
     test "finds and clicks links that are off the bottom of the page" do
       links_page = Click.connect() |> Click.navigate("/links")
       home = links_page |> Click.find_first("a#home") |> Click.click(:wait_for_navigation)
-      assert normalize(Click.html(home)) == normalize(TestPlug.home_page())
+      assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
 
       {:ok, home} = Click.Browser.get_current_document(links_page)
-      assert normalize(Click.html(home)) == normalize(TestPlug.home_page())
+      assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
     end
 
     test "can click on things that don't result in page navigation" do
@@ -100,7 +100,7 @@ defmodule ClickTest do
   describe "html" do
     test "returns the HTML source of a page" do
       html = Click.connect() |> Click.html()
-      assert normalize(html) == normalize(TestPlug.home_page())
+      assert normalize(html) == normalize(TestPlug.load_page("/home"))
     end
 
     test "returns the HTML source of an element" do
