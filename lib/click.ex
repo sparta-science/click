@@ -22,6 +22,9 @@ defmodule Click do
   def attr(nodes, attr_name),
     do: nodes |> with_nodes(&(Chrome.get_attributes(&1) |> Map.get(attr_name)))
 
+  def attr(nodes, attr_name, value),
+    do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value))
+
   def click(%DomNode{} = node),
     do: node |> Browser.simulate_click()
 

@@ -13,6 +13,13 @@ defmodule ClickTest do
       assert root |> Click.find_all("div") |> Click.attr("data-role") == ["top", "inner", "bottom", nil]
       assert root |> Click.find_first("div.topper") |> Click.attr("data-role") == "top"
     end
+
+    test "assigns the value to the attribute of the passed-in nodes" do
+      root = Click.connect() |> Click.navigate("/form")
+      assert root |> Click.find_all("input[type=text]") |> Click.attr("value") == ["", ""]
+      root |> Click.find_all("input[type=text]") |> Click.attr("value", "glorp")
+      assert root |> Click.find_all("input[type=text]") |> Click.attr("value") == ~w{glorp glorp}
+    end
   end
 
   describe "click" do

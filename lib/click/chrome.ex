@@ -9,15 +9,21 @@ defmodule Click.Chrome do
     end
   end
 
-  def dispatch_mouse_event(%DomNode{id: _id, pid: pid}, event, x, y, button) do
+  def dispatch_mouse_event(%DomNode{id: _id, pid: pid} = node, event, x, y, button) do
     with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchMouseEvent(pid, %{"type" => event, "x" => x, "y" => y, "button" => button, "clickCount" => 1}) do
-      :ok
+      node
     end
   end
 
   def get_attributes(%DomNode{id: id, pid: pid}) do
     with {:ok, %{"result" => %{"attributes" => attributes}}} <- RPC.DOM.getAttributes(pid, %{"nodeId" => id}) do
       Extra.List.to_map(attributes)
+    end
+  end
+
+  def set_attribute(%DomNode{id: id, pid: pid} = node, attr, value) do
+    with {:ok, %{"result" => %{}}} <- RPC.DOM.setAttributeValue(pid, %{"nodeId" => id, "name" => attr, "value" => value}) do
+      node
     end
   end
 
@@ -39,10 +45,10 @@ defmodule Click.Chrome do
     end
   end
 
-  def scroll_into_view(%DomNode{id: id, pid: pid}) do
+  def scroll_into_view(%DomNode{id: id, pid: pid} = node) do
     with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
          {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.scrollIntoView(); }", "objectId" => object_id}) do
-      :ok
+      node
     end
   end
 end

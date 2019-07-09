@@ -69,6 +69,8 @@ defmodule Click.TestSupport.TestPlug do
       <body>
         <form>
           <input type="checkbox" id="checkbox-1">
+          <input type="text" value="">
+          <input type="text" value="">
         </form>
       </body
     </html>
