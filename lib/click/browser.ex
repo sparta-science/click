@@ -1,7 +1,6 @@
 defmodule Click.Browser do
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC
-  alias ChromeRemoteInterface.Session
   alias Click.Chrome
   alias Click.DomNode
   alias Click.Quad
@@ -57,6 +56,8 @@ defmodule Click.Browser do
 
     subscribe(node, event)
 
+    Chrome.scroll_into_view(node)
+
     [x, y] = node |> Chrome.get_box_model() |> Quad.center()
 
     node |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none")
@@ -92,8 +93,8 @@ defmodule Click.Browser do
   end
 
   def start_session(%DomNode{} = node) do
-    with {:ok, [first_page | _]} <- Session.new(port: 9222) |> Session.list_pages(),
-         {:ok, pid} <- PageSession.start_link(first_page) do
+    with ws_addr <- Chroxy.connection(),
+         {:ok, pid} <- PageSession.start_link(ws_addr) do
       {:ok, %{node | pid: pid}}
     end
   end

@@ -1,30 +1,25 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-# This configuration is loaded before any dependency and is restricted
-# to this project. If another project depends on this project, this
-# file won't be loaded nor affect the parent project. For this reason,
-# if you want to provide default values for your application for
-# 3rd-party users, it should be done in your "mix.exs" file.
+config :logger, :console,
+  metadata: [:request_id, :pid, :module],
+  level: :error
 
-# You can configure your application as:
-#
-#     config :click, key: :value
-#
-# and access this configuration in your application as:
-#
-#     Application.get_env(:click, :key)
-#
-# You can also configure a 3rd-party app:
-#
-#     config :logger, level: :info
-#
+config :chroxy,
+  chrome_remote_debug_port_from: System.get_env("CHROXY_CHROME_PORT_FROM") || "9222",
+  chrome_remote_debug_port_to: System.get_env("CHROXY_CHROME_PORT_TO") || "9223"
 
-# It is also possible to import configuration files, relative to this
-# directory. For example, you can emulate configuration per environment
-# by uncommenting the line below and defining dev.exs, test.exs and such.
-# Configuration from the imported file will override the ones defined
-# here (which is why it is important to import them last).
-#
-#     import_config "#{Mix.env()}.exs"
+config :chroxy, Chroxy.ProxyListener,
+  host: System.get_env("CHROXY_PROXY_HOST") || "127.0.0.1",
+  port: System.get_env("CHROXY_PROXY_PORT") || "1331"
+
+config :chroxy, Chroxy.ProxyServer, packet_trace: false
+
+config :chroxy, Chroxy.Endpoint,
+  scheme: :http,
+  port: System.get_env("CHROXY_ENDPOINT_PORT") || "1330"
+
+config :chroxy, Chroxy.ChromeServer,
+  chrome_path: System.get_env("CLICK_BROWSER_PATH") || System.get_env("CHROXY_CHROME_PATH") || raise("Missing required env variable: CLICK_BROWSER_PATH or CHROXY_CHROME_PATH"),
+  page_wait_ms: System.get_env("CHROXY_CHROME_SERVER_PAGE_WAIT_MS") || "200",
+  crash_dumps_dir: System.get_env("CHROME_CHROME_SERVER_CRASH_DUMPS_DIR") || "/tmp",
+  verbose_logging: 0

@@ -38,4 +38,11 @@ defmodule Click.Chrome do
       node_ids |> Enum.map(fn node_id -> %{node | id: node_id} end)
     end
   end
+
+  def scroll_into_view(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.scrollIntoView(); }", "objectId" => object_id}) do
+      :ok
+    end
+  end
 end

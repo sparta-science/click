@@ -10,3 +10,4 @@ click-*.tar
 # intellij
 /.idea
 /*.iml
+.envrc
