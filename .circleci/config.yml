@@ -12,12 +12,6 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run:
-          name: Install apt-get dependencies
-          command: |
-            sudo apt-get update
-            sudo apt-get install \
-              chromium
 
       - run: git fetch --tags --force
 
