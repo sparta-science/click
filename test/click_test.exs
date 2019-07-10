@@ -129,7 +129,7 @@ defmodule ClickTest do
   describe "send_enter" do
     test "sends a key event for the enter key" do
       page = Click.connect() |> Click.navigate("/events")
-      page |> Click.find_first("#input") |> IO.inspect(label: "input") |> Click.send_enter()
+      page |> Click.find_first("#input") |> Click.send_enter()
       events = page |> Click.find_first("#output") |> Click.text()
       assert events == "keydown:Enter keyup:Enter"
     end
