@@ -9,8 +9,14 @@ defmodule Click.Chrome do
     end
   end
 
-  def dispatch_mouse_event(%DomNode{id: _id, pid: pid} = node, event, x, y, button) do
-    with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchMouseEvent(pid, %{"type" => event, "x" => x, "y" => y, "button" => button, "clickCount" => 1}) do
+  def dispatch_key_event(%DomNode{pid: pid} = node, event_type, key_code) do
+    with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchKeyEvent(pid, %{"type" => event_type, "code" => key_code}) do
+      node
+    end
+  end
+
+  def dispatch_mouse_event(%DomNode{pid: pid} = node, event_type, x, y, button) do
+    with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchMouseEvent(pid, %{"type" => event_type, "x" => x, "y" => y, "button" => button, "clickCount" => 1}) do
       node
     end
   end

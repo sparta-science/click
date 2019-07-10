@@ -56,11 +56,16 @@ defmodule Click.Browser do
 
     [x, y] = node |> Chrome.get_box_model() |> Quad.center()
 
-    node |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none")
-    node |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left")
-    node |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
-
     node
+    |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none")
+    |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left")
+    |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
+  end
+
+  def simulate_keypress(%DomNode{} = node, key_code) do
+    node
+    |> Chrome.dispatch_key_event("keyDown", key_code)
+    |> Chrome.dispatch_key_event("keyUp", key_code)
   end
 
   def wait_for_navigation(%DomNode{} = node, fun) do

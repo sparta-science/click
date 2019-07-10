@@ -1,0 +1,18 @@
+<html>
+  <head></head>
+  <body>
+    <input id="input">
+    <div id="output"></div>
+
+    <script type="text/javascript">
+      function logEvent(event) {
+        console.log(event);
+        document.getElementById("output").textContent += ` ${event.type}:${event.key}`;
+      }
+
+      var input = document.getElementById("input");
+      input.onkeydown = logEvent;
+      input.onkeyup = logEvent;
+    </script>
+  </body>
+</html>

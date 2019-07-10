@@ -126,6 +126,17 @@ defmodule ClickTest do
     end
   end
 
+  describe "send_enter" do
+    @tag :skip
+    test "sends a key event for the enter key" do
+      page = Click.connect() |> Click.navigate("/events")
+      page |> Click.find_first("#input") |> IO.inspect(label: "input") |> Click.send_enter()
+      :timer.sleep(2000)
+      events = page |> Click.find_first("#output") |> IO.inspect(label: "output") |> Click.html()
+      assert events == "keydown:Enter keyup:Enter"
+    end
+  end
+
   describe "text" do
     test "by default, gets the text of all descendants, joined by a single space" do
       text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text()
