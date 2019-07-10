@@ -30,3 +30,7 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/click](https://hexdocs.pm/click).
 
+
+## Troubleshooting
+
+[erlexec](https://github.com/saleyn/erlexec/blob/11a168d2c1eef7b7882a06d52b0c0c4aa63fb05b/c_src/exec.cpp#L501) might blow up with `SHELL environment variable not set!`; try setting `SHELL` to `/bin/bash` or something.
