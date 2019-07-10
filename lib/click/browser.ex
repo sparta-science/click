@@ -77,7 +77,7 @@ defmodule Click.Browser do
 
     subscribe(node, event)
 
-    fun.()
+    fun.(node)
 
     receive do
       {:chrome_remote_interface, event, _response} ->

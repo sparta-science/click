@@ -29,7 +29,7 @@ defmodule Click do
     do: node |> Browser.simulate_click()
 
   def click(%DomNode{} = node, :wait_for_navigation),
-    do: Browser.wait_for_navigation(node, fn -> node |> Browser.simulate_click() end)
+    do: node |> Browser.wait_for_navigation(&Browser.simulate_click/1)
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1, 1) == text))
