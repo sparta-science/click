@@ -62,10 +62,14 @@ defmodule Click.Browser do
     |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
   end
 
-  def simulate_keypress(%DomNode{} = node, key_code) do
+  def simulate_keypress(%DomNode{} = node, :enter) do
+    # see https://github.com/GoogleChrome/puppeteer/blob/master/lib/USKeyboardLayout.js#L32
+    # and https://github.com/GoogleChrome/puppeteer/blob/master/lib/Input.js#L176
+
     node
-    |> Chrome.dispatch_key_event("keyDown", key_code)
-    |> Chrome.dispatch_key_event("keyUp", key_code)
+    |> Chrome.focus()
+    |> Chrome.dispatch_key_event("keyDown", "Enter", 13, "Enter", "\r")
+    |> Chrome.dispatch_key_event("keyUp", "Enter", 13, "Enter", "\r")
   end
 
   def wait_for_navigation(%DomNode{} = node, fun) do

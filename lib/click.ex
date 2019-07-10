@@ -51,7 +51,7 @@ defmodule Click do
   end
 
   def send_enter(nodes),
-    do: nodes |> with_nodes(&Browser.simulate_keypress(&1, "Enter"))
+    do: nodes |> with_nodes(&Browser.simulate_keypress(&1, :enter))
 
   def text(nodes, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))

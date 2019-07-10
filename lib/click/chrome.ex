@@ -9,8 +9,8 @@ defmodule Click.Chrome do
     end
   end
 
-  def dispatch_key_event(%DomNode{pid: pid} = node, event_type, key_code) do
-    with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchKeyEvent(pid, %{"type" => event_type, "code" => key_code}) do
+  def dispatch_key_event(%DomNode{pid: pid} = node, event_type, code, key_code, key, text) do
+    with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchKeyEvent(pid, %{"type" => event_type, "keyCode" => key_code, "code" => code, "key" => key, "text" => text}) do
       node
     end
   end
@@ -21,15 +21,15 @@ defmodule Click.Chrome do
     end
   end
 
-  def get_attributes(%DomNode{id: id, pid: pid}) do
-    with {:ok, %{"result" => %{"attributes" => attributes}}} <- RPC.DOM.getAttributes(pid, %{"nodeId" => id}) do
-      Extra.List.to_map(attributes)
+  def focus(%DomNode{id: id, pid: pid} = node) do
+    with {:ok, %{"result" => %{}}} <- RPC.DOM.focus(pid, %{"nodeId" => id}) do
+      node
     end
   end
 
-  def set_attribute(%DomNode{id: id, pid: pid} = node, attr, value) do
-    with {:ok, %{"result" => %{}}} <- RPC.DOM.setAttributeValue(pid, %{"nodeId" => id, "name" => attr, "value" => value}) do
-      node
+  def get_attributes(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{"attributes" => attributes}}} <- RPC.DOM.getAttributes(pid, %{"nodeId" => id}) do
+      Extra.List.to_map(attributes)
     end
   end
 
@@ -54,6 +54,12 @@ defmodule Click.Chrome do
   def scroll_into_view(%DomNode{id: id, pid: pid} = node) do
     with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
          {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.scrollIntoView(); }", "objectId" => object_id}) do
+      node
+    end
+  end
+
+  def set_attribute(%DomNode{id: id, pid: pid} = node, attr, value) do
+    with {:ok, %{"result" => %{}}} <- RPC.DOM.setAttributeValue(pid, %{"nodeId" => id, "name" => attr, "value" => value}) do
       node
     end
   end
