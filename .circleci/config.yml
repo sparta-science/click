@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: spartascience/cci-erlang-elixir-node-container:1.9.0-otp-22.0.3
+    - image: spartascience/cci-erlang-elixir-node-container:0.0.14
 
   working_directory: /home/circleci/click
   environment:
@@ -16,8 +16,8 @@ jobs:
       - run:
           name: Install apt-get dependencies
           command: |
-            apt-get update
-            apt-get install \
+            sudo apt-get update
+            sudo apt-get install \
               chromium
 
       - run: git fetch --tags --force
