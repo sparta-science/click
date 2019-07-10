@@ -5,7 +5,7 @@ defmodule Click.MixProject do
     [
       app: :click,
       deps: deps(),
-      elixir: "~> 1.6",
+      elixir: "~> 1.8",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       version: "0.1.6"
