@@ -76,18 +76,26 @@ defmodule Click.Browser do
     event = "Page.frameNavigated"
 
     subscribe(node, event)
+    subscribe(node, "Page.domContentEventFired")
 
-    fun.(node)
+    try do
+      fun.(node)
 
-    receive do
-      {:chrome_remote_interface, ^event, _response} ->
-        unsubscribe(node, event)
-        {:ok, node} = wait_for_and_get_current_document(node)
-        node
+      receive do
+        {:chrome_remote_interface, ^event, _response} ->
+          {:ok, node} = wait_for_and_get_current_document(node)
+          node
+
+        {:chrome_remote_interface, "Page.domContentEventFired", response} ->
+          IO.puts("Page.domContentEventFired: #{inspect(response)}")
+          raise "got Page.domContentEventFired first :("
+      after
+        500 ->
+          {:error, "timeout while waiting for page navigation"}
+      end
     after
-      500 ->
-        unsubscribe(node, event)
-        {:error, "timeout while waiting for page navigation"}
+      unsubscribe(node, event)
+      unsubscribe(node, "Page.domContentEventFired")
     end
   end
 
