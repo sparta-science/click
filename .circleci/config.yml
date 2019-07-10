@@ -2,7 +2,8 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: spartascience/cci-erlang-elixir-node-container:0.0.14
+    - image: spartascience/cci-erlang-elixir-node-container:1.9.0-otp-22.0.3
+
   working_directory: /home/circleci/click
   environment:
     - MIX_ENV: "test"
@@ -67,10 +68,3 @@ jobs:
           command: |
             ssh-add ~/.ssh/id_rsa_4e2a809903ef20f4c4d3e1066253f3d9
             git push --tags --verbose
-
-#      - run:
-#          name: Push to hex.pm
-#          command: |
-#            mix hex.config api_key ${HEX_PM_SPARTA_ORG_API_KEY}
-#            mix hex.organization auth sparta --key ${HEX_PM_SPARTA_ORG}
-#            mix hex.publish --organization sparta --yes package
