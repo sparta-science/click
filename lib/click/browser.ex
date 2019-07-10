@@ -72,47 +72,36 @@ defmodule Click.Browser do
     |> Chrome.dispatch_key_event("keyUp", "Enter", 13, "Enter", "\r")
   end
 
+  @timeout 2_000
+  @navigation_event "Page.frameNavigated"
+  @content_event "Page.domContentEventFired"
   def wait_for_navigation(%DomNode{} = node, fun) do
-    event = "Page.frameNavigated"
+    flush_events(@navigation_event)
+    flush_events(@content_event)
 
-    subscribe(node, event)
-    subscribe(node, "Page.domContentEventFired")
+    subscribe(node, @navigation_event)
+    subscribe(node, @content_event)
 
     try do
       fun.(node)
 
       receive do
-        {:chrome_remote_interface, ^event, _response} ->
-          {:ok, node} = wait_for_and_get_current_document(node)
-          node
-
-        {:chrome_remote_interface, "Page.domContentEventFired", response} ->
-          IO.puts("Page.domContentEventFired: #{inspect(response)}")
-          raise "got Page.domContentEventFired first :("
+        {:chrome_remote_interface, @navigation_event, _response} ->
+          receive do
+            {:chrome_remote_interface, @content_event, _response} ->
+              {:ok, new_node} = get_current_document(node)
+              new_node
+          after
+            @timeout ->
+              {:error, "timed out after #{@timeout}ms waiting for #{@content_event}"}
+          end
       after
-        500 ->
-          {:error, "timeout while waiting for page navigation"}
+        @timeout ->
+          {:error, "timed out after #{@timeout}ms waiting for #{@navigation_event}"}
       end
     after
-      unsubscribe(node, event)
-      unsubscribe(node, "Page.domContentEventFired")
-    end
-  end
-
-  def wait_for_and_get_current_document(%DomNode{} = node) do
-    event = "Page.domContentEventFired"
-    timeout = 5_000
-
-    subscribe(node, event)
-
-    receive do
-      {:chrome_remote_interface, ^event, _response} ->
-        unsubscribe(node, event)
-        get_current_document(node)
-    after
-      timeout ->
-        unsubscribe(node, event)
-        {:error, "page did not load after #{timeout}ms"}
+      unsubscribe(node, @navigation_event)
+      unsubscribe(node, @content_event)
     end
   end
 
@@ -140,5 +129,13 @@ defmodule Click.Browser do
 
   defp unsubscribe(%DomNode{pid: pid}, event) do
     :ok = PageSession.unsubscribe(pid, event)
+  end
+
+  defp flush_events(event) do
+    receive do
+      {:chrome_remote_interface, ^event, _response} -> flush_events(event)
+    after
+      0 -> :ok
+    end
   end
 end
