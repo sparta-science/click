@@ -30,6 +30,13 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/click](https://hexdocs.pm/click).
 
+Click uses the CLICK_BROWSER_PATH environment variable to find a suitable chrome/chromium.
+
+On linux, you might find the chrome executable at 
+/opt/google/chrome/google-chrome
+
+On Osx, you might find the chrome executable at 
+/Applications/Chromium.app/Contents/MacOS/Chromium
 
 ## Troubleshooting
 
