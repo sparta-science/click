@@ -93,6 +93,7 @@ defmodule Click.Browser do
 
   def wait_for_and_get_current_document(%DomNode{} = node) do
     event = "Page.domContentEventFired"
+    timeout = 5_000
 
     subscribe(node, event)
 
@@ -101,9 +102,9 @@ defmodule Click.Browser do
         unsubscribe(node, event)
         get_current_document(node)
     after
-      2_000 ->
+      timeout ->
         unsubscribe(node, event)
-        {:error, "page did not load"}
+        {:error, "page did not load after #{timeout}ms"}
     end
   end
 
