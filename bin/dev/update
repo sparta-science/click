@@ -3,3 +3,4 @@
 set -ex
 
 git pull --rebase
+mix deps.get
