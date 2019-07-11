@@ -131,7 +131,7 @@ defmodule ClickTest do
       path = Click.connect() |> Click.navigate("/") |> Click.screenshot()
       assert path =~ ~r|\A/.*/briefly.*\.png\z|
       assert File.exists?(path)
-      assert File.stat!(path).size > 10_000
+      assert File.stat!(path).size > 5_000
     end
   end
 
