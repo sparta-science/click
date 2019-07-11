@@ -16,7 +16,7 @@ defmodule Click.Browser do
     with node <- %DomNode{base_url: base_url, id: nil, pid: nil},
          {:ok, node} <- start_session(node),
          {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
-         node <- navigate(node, "/") do
+         {:ok, node} <- navigate(node, "/") do
       {:ok, node}
     end
   end
@@ -72,8 +72,7 @@ defmodule Click.Browser do
         {:chrome_remote_interface, @navigation_event, _response} ->
           receive do
             {:chrome_remote_interface, @content_event, _response} ->
-              {:ok, new_node} = get_current_document(node)
-              new_node
+              {:ok, _new_node} = get_current_document(node)
           after
             @timeout ->
               {:error, "timed out after #{@timeout}ms waiting for #{@content_event}"}

@@ -28,8 +28,13 @@ defmodule Click do
   def click(node),
     do: node |> one!() |> Browser.simulate_click()
 
-  def click(node, :wait_for_navigation),
-    do: node |> one!() |> Browser.wait_for_navigation(&Browser.simulate_click/1)
+  def click(node, :wait_for_navigation) do
+    with {:ok, node} <- node |> one!() |> Browser.wait_for_navigation(&Browser.simulate_click/1) do
+      node
+    else
+      result -> raise "click navigation failed with #{inspect(result)}"
+    end
+  end
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1) == text))
@@ -45,9 +50,10 @@ defmodule Click do
 
   def navigate(node, path) do
     with node <- one!(node),
-         {:ok, node} <- Browser.navigate(node, path),
-         {:ok, node} <- Browser.get_current_document(node) do
+         {:ok, node} <- Browser.navigate(node, path) do
       node
+    else
+      result -> raise "navigation to #{path} failed with #{inspect(result)}"
     end
   end
 
