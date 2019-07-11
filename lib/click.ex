@@ -25,14 +25,14 @@ defmodule Click do
   def attr(nodes, attr_name, value),
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value))
 
-  def click(%DomNode{} = node),
-    do: node |> Browser.simulate_click()
+  def click(node),
+    do: node |> one!() |> Browser.simulate_click()
 
-  def click(%DomNode{} = node, :wait_for_navigation),
-    do: node |> Browser.wait_for_navigation(&Browser.simulate_click/1)
+  def click(node, :wait_for_navigation),
+    do: node |> one!() |> Browser.wait_for_navigation(&Browser.simulate_click/1)
 
   def filter(nodes, text: text),
-    do: nodes |> Enum.filter(&(text(&1, 1) == text))
+    do: nodes |> Enum.filter(&(text(&1) == text))
 
   def find_all(nodes, query),
     do: nodes |> List.wrap() |> Enum.flat_map(&Chrome.query_selector_all(&1, query))
@@ -43,8 +43,9 @@ defmodule Click do
   def html(nodes),
     do: nodes |> with_nodes(&Chrome.get_outer_html(&1))
 
-  def navigate(%DomNode{} = node, path) do
-    with {:ok, node} <- Browser.navigate(node, path),
+  def navigate(node, path) do
+    with node <- one!(node),
+         {:ok, node} <- Browser.navigate(node, path),
          {:ok, node} <- Browser.get_current_document(node) do
       node
     end
@@ -87,6 +88,12 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
+
+  defp one!([%DomNode{} = node]),
+    do: node
+
+  defp one!(%DomNode{} = node),
+    do: node
 
   defp with_nodes(nil, _fun),
     do: nil
