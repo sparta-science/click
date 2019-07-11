@@ -3,6 +3,12 @@ defmodule Click.Chrome do
   alias Click.Extra
   alias Click.DomNode
 
+  def capture_screenshot(%DomNode{pid: pid}) do
+    with {:ok, %{"result" => %{"data" => data}}} <- RPC.Page.captureScreenshot(pid, %{}) do
+      data
+    end
+  end
+
   def describe_node(%DomNode{id: id, pid: pid}, depth) do
     with {:ok, %{"result" => %{"node" => description}}} <- RPC.DOM.describeNode(pid, %{"nodeId" => id, "depth" => depth}) do
       description

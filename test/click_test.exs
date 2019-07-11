@@ -126,6 +126,15 @@ defmodule ClickTest do
     end
   end
 
+  describe "screenshot" do
+    test "saves a screenshot to a temp file" do
+      path = Click.connect() |> Click.navigate("/") |> Click.screenshot()
+      assert path =~ ~r|\A/.*/briefly.*\.png\z|
+      assert File.exists?(path)
+      assert File.stat!(path).size > 10_000
+    end
+  end
+
   describe "send_enter" do
     test "sends a key event for the enter key" do
       page = Click.connect() |> Click.navigate("/events")

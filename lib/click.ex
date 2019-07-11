@@ -3,6 +3,7 @@ defmodule Click do
   alias Click.Chrome
   alias Click.DomNode
   alias Click.NodeDescription
+  alias Click.Tempfile
 
   @full_depth -1
 
@@ -56,6 +57,9 @@ defmodule Click do
       result -> raise "navigation to #{path} failed with #{inspect(result)}"
     end
   end
+
+  def screenshot(node),
+    do: node |> one!() |> Chrome.capture_screenshot() |> Base.decode64!() |> Tempfile.write(".png")
 
   def send_enter(nodes),
     do: nodes |> with_nodes(&Browser.simulate_keypress(&1, :enter))
