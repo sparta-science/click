@@ -26,18 +26,16 @@ end
 
 For application testing, Click can be started in AcceptanceCase. Take a look at Glacier Point.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/click](https://hexdocs.pm/click).
+If there were docs, they'd be at [https://hexdocs.pm/click](https://hexdocs.pm/click). 
 
-Click uses the CLICK_BROWSER_PATH environment variable to find a suitable chrome/chromium.
+## Required environment variables
 
-On linux, you might find the chrome executable at 
-/opt/google/chrome/google-chrome
+### `CLICK_BROWSER_PATH`
+Click uses the `CLICK_BROWSER_PATH` environment variable to find a suitable chrome/chromium.
 
-On Osx, you might find the chrome executable at 
-/Applications/Chromium.app/Contents/MacOS/Chromium
+On Linux, you might find the chrome executable at `/opt/google/chrome/google-chrome`
 
-## Troubleshooting
+On MacOS, you might find the chromium executable at `/Applications/Chromium.app/Contents/MacOS/Chromium`
 
+### `SHELL`
 [erlexec](https://github.com/saleyn/erlexec/blob/11a168d2c1eef7b7882a06d52b0c0c4aa63fb05b/c_src/exec.cpp#L501) might blow up with `SHELL environment variable not set!`; try setting `SHELL` to `/bin/bash` or something.
