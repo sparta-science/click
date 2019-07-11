@@ -45,6 +45,13 @@ defmodule Click.Chrome do
     end
   end
 
+  def navigate(%DomNode{base_url: base_url, pid: pid} = node, path) do
+    with {:ok, _} <- RPC.Page.enable(pid),
+         {:ok, _} <- RPC.Page.navigate(pid, %{url: URI.merge(base_url, path) |> to_string()}) do
+      node
+    end
+  end
+
   def query_selector_all(%DomNode{id: id, pid: pid} = node, query) do
     with {:ok, %{"result" => %{"nodeIds" => node_ids}}} <- RPC.DOM.querySelectorAll(pid, %{"nodeId" => id, "selector" => query}) do
       node_ids |> Enum.map(fn node_id -> %{node | id: node_id} end)

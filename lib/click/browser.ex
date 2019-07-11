@@ -16,8 +16,7 @@ defmodule Click.Browser do
     with node <- %DomNode{base_url: base_url, id: nil, pid: nil},
          {:ok, node} <- start_session(node),
          {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
-         {:ok, node} <- navigate(node, "/"),
-         {:ok, node} <- get_current_document(node) do
+         node <- navigate(node, "/") do
       {:ok, node}
     end
   end
@@ -31,24 +30,8 @@ defmodule Click.Browser do
     end
   end
 
-  def navigate(%DomNode{base_url: base_url, pid: pid} = node, path) do
-    event = "Page.domContentEventFired"
-
-    subscribe(node, event)
-
-    with {:ok, _} <- RPC.Page.enable(pid),
-         url <- URI.merge(base_url, path) |> to_string(),
-         {:ok, _} <- RPC.Page.navigate(pid, %{url: url}) do
-      receive do
-        {:chrome_remote_interface, event, _response} ->
-          unsubscribe(node, event)
-          {:ok, node}
-      after
-        2_000 ->
-          unsubscribe(node, event)
-          {:error, "page did not load after navigating to #{url}"}
-      end
-    end
+  def navigate(node, path) do
+    wait_for_navigation(node, &Chrome.navigate(&1, path))
   end
 
   def simulate_click(%DomNode{} = node) do
