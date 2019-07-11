@@ -181,6 +181,19 @@ defmodule ClickTest do
     end
   end
 
+  describe "wait_for_navigation" do
+    test "returns the node of the new page" do
+      node = Click.connect() |> Click.wait_for_navigation(&Click.navigate(&1, "/deep"))
+      assert normalize(Click.html(node)) == normalize(TestPlug.load_page("/deep"))
+    end
+
+    test "raises if the navigation fails" do
+      assert_raise(MatchError, fn ->
+        Click.connect() |> Click.wait_for_navigation(fn _ -> nil end)
+      end)
+    end
+  end
+
   describe "wait_until" do
     test "loops on any error" do
       test_fun = fn -> raise ArithmeticError end

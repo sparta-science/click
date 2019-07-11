@@ -27,10 +27,10 @@ defmodule Click do
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value))
 
   def click(node),
-    do: node |> one!() |> Browser.simulate_click()
+    do: node |> one!() |> Chrome.click()
 
   def click(node, :wait_for_navigation) do
-    with {:ok, node} <- node |> one!() |> Browser.wait_for_navigation(&Browser.simulate_click/1) do
+    with {:ok, node} <- node |> one!() |> Browser.wait_for_navigation(&Chrome.click/1) do
       node
     else
       result -> raise "click navigation failed with #{inspect(result)}"
@@ -66,6 +66,11 @@ defmodule Click do
 
   def text(nodes, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
+
+  def wait_for_navigation(nodes, fun) do
+    {:ok, node} = Browser.wait_for_navigation(nodes, fun)
+    node
+  end
 
   def wait_until(fun, opts \\ []) when is_function(fun) and is_list(opts) do
     start_time = now_ms()

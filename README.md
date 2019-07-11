@@ -39,3 +39,9 @@ On MacOS, you might find the chromium executable at `/Applications/Chromium.app/
 
 ### `SHELL`
 [erlexec](https://github.com/saleyn/erlexec/blob/11a168d2c1eef7b7882a06d52b0c0c4aa63fb05b/c_src/exec.cpp#L501) might blow up with `SHELL environment variable not set!`; try setting `SHELL` to `/bin/bash` or something.
+
+## Developing
+
+### Resources
+
+* [recipes](https://github.com/cyrus-and/chrome-remote-interface/wiki)

@@ -9,6 +9,13 @@ defmodule Click.Chrome do
     end
   end
 
+  def click(%DomNode{id: id, pid: pid} = node) do
+    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.click(); }", "objectId" => object_id}) do
+      node
+    end
+  end
+
   def describe_node(%DomNode{id: id, pid: pid}, depth) do
     with {:ok, %{"result" => %{"node" => description}}} <- RPC.DOM.describeNode(pid, %{"nodeId" => id, "depth" => depth}) do
       description
