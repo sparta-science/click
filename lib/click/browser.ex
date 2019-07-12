@@ -1,5 +1,5 @@
 defmodule Click.Browser do
-  alias ChromeRemoteInterface.PageSession
+  alias Click.BrowserSession
   alias Click.Chrome
   alias Click.ChromeEvent
   alias Click.DomNode
@@ -13,8 +13,8 @@ defmodule Click.Browser do
 
   def new(base_url, opts \\ []) do
     with node <- %DomNode{base_url: base_url, id: nil, pid: nil},
-         {:ok, node} <- start_session(node),
-         {:ok, node} <- update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
+         {:ok, node} <- BrowserSession.start(node),
+         {:ok, node} <- BrowserSession.update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
          {:ok, node} <- navigate(node, "/") do
       {:ok, node}
     end
@@ -29,17 +29,4 @@ defmodule Click.Browser do
   def navigate(node, path) do
     ChromeEvent.wait_for_navigation(node, &Chrome.navigate(&1, path), &get_current_document/1)
   end
-
-  def start_session(%DomNode{} = node) do
-    with ws_addr <- Chroxy.connection(),
-         {:ok, pid} <- PageSession.start_link(ws_addr) do
-      {:ok, %{node | pid: pid}}
-    end
-  end
-
-  def update_user_agent(node, nil),
-    do: {:ok, node}
-
-  def update_user_agent(%DomNode{} = node, suffix),
-    do: {:ok, Chrome.set_user_agent(node, Chrome.get_user_agent(node) <> suffix)}
 end
