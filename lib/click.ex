@@ -1,6 +1,7 @@
 defmodule Click do
   alias Click.Browser
   alias Click.Chrome
+  alias Click.ChromeEvent
   alias Click.DomNode
   alias Click.NodeDescription
   alias Click.Tempfile
@@ -30,7 +31,7 @@ defmodule Click do
     do: node |> one!() |> Chrome.click()
 
   def click(node, :wait_for_navigation) do
-    with {:ok, node} <- node |> one!() |> Browser.wait_for_navigation(&Chrome.click/1) do
+    with {:ok, node} <- node |> one!() |> ChromeEvent.wait_for_navigation(&Chrome.click/1, &Browser.get_current_document/1) do
       node
     else
       result -> raise "click navigation failed with #{inspect(result)}"
@@ -68,7 +69,7 @@ defmodule Click do
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
 
   def wait_for_navigation(nodes, fun) do
-    {:ok, node} = Browser.wait_for_navigation(nodes, fun)
+    {:ok, node} = ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1)
     node
   end
 

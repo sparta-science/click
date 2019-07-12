@@ -2,6 +2,7 @@ defmodule Click.Browser do
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC
   alias Click.Chrome
+  alias Click.ChromeEvent
   alias Click.DomNode
   alias Click.Quad
 
@@ -31,7 +32,7 @@ defmodule Click.Browser do
   end
 
   def navigate(node, path) do
-    wait_for_navigation(node, &Chrome.navigate(&1, path))
+    ChromeEvent.wait_for_navigation(node, &Chrome.navigate(&1, path), &get_current_document/1)
   end
 
   def simulate_click(%DomNode{} = node) do
@@ -55,38 +56,6 @@ defmodule Click.Browser do
     |> Chrome.dispatch_key_event("keyUp", "Enter", 13, "Enter", "\r")
   end
 
-  @timeout 2_000
-  @navigation_event "Page.frameNavigated"
-  @content_event "Page.domContentEventFired"
-  def wait_for_navigation(%DomNode{} = node, fun) do
-    flush_events(@navigation_event)
-    flush_events(@content_event)
-
-    subscribe(node, @navigation_event)
-    subscribe(node, @content_event)
-
-    try do
-      fun.(node)
-
-      receive do
-        {:chrome_remote_interface, @navigation_event, _response} ->
-          receive do
-            {:chrome_remote_interface, @content_event, _response} ->
-              {:ok, _new_node} = get_current_document(node)
-          after
-            @timeout ->
-              {:error, "timed out after #{@timeout}ms waiting for #{@content_event}"}
-          end
-      after
-        @timeout ->
-          {:error, "timed out after #{@timeout}ms waiting for #{@navigation_event}"}
-      end
-    after
-      unsubscribe(node, @navigation_event)
-      unsubscribe(node, @content_event)
-    end
-  end
-
   def start_session(%DomNode{} = node) do
     with ws_addr <- Chroxy.connection(),
          {:ok, pid} <- PageSession.start_link(ws_addr) do
@@ -100,24 +69,6 @@ defmodule Click.Browser do
     with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),
          {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent <> suffix}) do
       {:ok, node}
-    end
-  end
-
-  #
-
-  defp subscribe(%DomNode{pid: pid}, event) do
-    :ok = PageSession.subscribe(pid, event)
-  end
-
-  defp unsubscribe(%DomNode{pid: pid}, event) do
-    :ok = PageSession.unsubscribe(pid, event)
-  end
-
-  defp flush_events(event) do
-    receive do
-      {:chrome_remote_interface, ^event, _response} -> flush_events(event)
-    after
-      0 -> :ok
     end
   end
 end
