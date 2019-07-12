@@ -24,11 +24,8 @@ defmodule Click.Browser do
 
   #
 
-  def get_current_document(%DomNode{pid: pid} = node) do
-    with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid),
-         node <- %{node | id: id} do
-      {:ok, node}
-    end
+  def get_current_document(%DomNode{} = node) do
+    {:ok, Chrome.get_document(node)}
   end
 
   def navigate(node, path) do

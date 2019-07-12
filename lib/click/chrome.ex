@@ -52,6 +52,12 @@ defmodule Click.Chrome do
     end
   end
 
+  def get_document(%DomNode{pid: pid} = node) do
+    with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid) do
+      %{node | id: id}
+    end
+  end
+
   def get_outer_html(%DomNode{id: id, pid: pid}) do
     with {:ok, %{"result" => %{"outerHTML" => outer_html}}} <- RPC.DOM.getOuterHTML(pid, %{"nodeId" => id}) do
       outer_html
