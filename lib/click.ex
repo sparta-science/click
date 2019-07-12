@@ -15,12 +15,10 @@ defmodule Click do
   end
 
   def connect(opts \\ []) do
-    wait_until(fn ->
-      Browser.new!(
-        opts |> Keyword.get(:base_url, "http://localhost:4001"),
-        user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
-      )
-    end)
+    Browser.new!(
+      opts |> Keyword.get(:base_url, "http://localhost:4001"),
+      user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
+    )
   end
 
   def attr(nodes, attr_name),
@@ -74,30 +72,6 @@ defmodule Click do
     {:ok, node} = ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1)
     node
   end
-
-  def wait_until(fun, opts \\ []) when is_function(fun) and is_list(opts) do
-    start_time = now_ms()
-
-    try do
-      fun.()
-    rescue
-      e -> process_error(fun, start_time, e, opts)
-    end
-  end
-
-  defp process_error(fun, start_time, error, opts) do
-    timeout = Keyword.get(opts, :timeout, 500)
-
-    if timeout > 0 do
-      :timer.sleep(5)
-      elapsed = now_ms() - start_time
-      wait_until(fun, timeout: max(0, timeout - elapsed))
-    else
-      raise error
-    end
-  end
-
-  def now_ms(), do: DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
   #
 
