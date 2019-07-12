@@ -1,8 +1,9 @@
 defmodule Click do
+  import Click.DomNode, only: [one!: 1, with_nodes: 2]
+
   alias Click.Browser
   alias Click.Chrome
   alias Click.ChromeEvent
-  alias Click.DomNode
   alias Click.NodeDescription
   alias Click.Simulate
   alias Click.Tempfile
@@ -105,19 +106,4 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
-
-  defp one!([%DomNode{} = node]),
-    do: node
-
-  defp one!(%DomNode{} = node),
-    do: node
-
-  defp with_nodes(nil, _fun),
-    do: nil
-
-  defp with_nodes(nodes, fun) when is_list(nodes),
-    do: nodes |> Enum.map(fun)
-
-  defp with_nodes(node, fun),
-    do: fun.(node)
 end
