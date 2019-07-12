@@ -4,6 +4,7 @@ defmodule Click do
   alias Click.ChromeEvent
   alias Click.DomNode
   alias Click.NodeDescription
+  alias Click.Simulate
   alias Click.Tempfile
 
   @full_depth -1
@@ -63,7 +64,7 @@ defmodule Click do
     do: node |> one!() |> Chrome.capture_screenshot() |> Base.decode64!() |> Tempfile.write(".png")
 
   def send_enter(nodes),
-    do: nodes |> with_nodes(&Browser.simulate_keypress(&1, :enter))
+    do: nodes |> with_nodes(&Simulate.keypress(&1, :enter))
 
   def text(nodes, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
