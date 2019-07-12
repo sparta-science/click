@@ -1,6 +1,5 @@
 defmodule Click.Browser do
   alias ChromeRemoteInterface.PageSession
-  alias ChromeRemoteInterface.RPC
   alias Click.Chrome
   alias Click.ChromeEvent
   alias Click.DomNode
@@ -60,12 +59,9 @@ defmodule Click.Browser do
     end
   end
 
-  def update_user_agent(browser, nil), do: {:ok, browser}
+  def update_user_agent(node, nil),
+    do: {:ok, node}
 
-  def update_user_agent(%DomNode{pid: pid} = node, suffix) do
-    with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid),
-         {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent <> suffix}) do
-      {:ok, node}
-    end
-  end
+  def update_user_agent(%DomNode{} = node, suffix),
+    do: {:ok, Chrome.set_user_agent(node, Chrome.get_user_agent(node) <> suffix)}
 end

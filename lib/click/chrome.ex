@@ -64,6 +64,12 @@ defmodule Click.Chrome do
     end
   end
 
+  def get_user_agent(%DomNode{pid: pid}) do
+    with {:ok, %{"result" => %{"userAgent" => user_agent}}} <- RPC.Browser.getVersion(pid) do
+      user_agent
+    end
+  end
+
   def navigate(%DomNode{base_url: base_url, pid: pid} = node, path) do
     with {:ok, _} <- RPC.Page.enable(pid),
          {:ok, _} <- RPC.Page.navigate(pid, %{url: URI.merge(base_url, path) |> to_string()}) do
@@ -86,6 +92,12 @@ defmodule Click.Chrome do
 
   def set_attribute(%DomNode{id: id, pid: pid} = node, attr, value) do
     with {:ok, %{"result" => %{}}} <- RPC.DOM.setAttributeValue(pid, %{"nodeId" => id, "name" => attr, "value" => value}) do
+      node
+    end
+  end
+
+  def set_user_agent(%DomNode{pid: pid} = node, user_agent) do
+    with {:ok, _} <- RPC.Network.setUserAgentOverride(pid, %{"userAgent" => user_agent}) do
       node
     end
   end
