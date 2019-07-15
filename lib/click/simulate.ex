@@ -4,25 +4,27 @@ defmodule Click.Simulate do
   alias Click.Quad
 
   def click(%DomNode{} = node) do
-    Chrome.scroll_into_view(node)
-
-    # these coordinates are sometimes relative to something inside the page,
+    # the coordinates from get_box_model are sometimes relative to something inside the page,
     # which makes this whole function click in the wrong place sometimes
-    [x, y] = node |> Chrome.get_box_model() |> Quad.center()
 
-    node
-    |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none")
-    |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left")
-    |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left")
+    with {:ok, node} <- Chrome.scroll_into_view(node),
+         {:ok, box_model} <- Chrome.get_box_model(node),
+         [x, y] <- box_model |> Quad.center(),
+         {:ok, node} <- node |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none"),
+         {:ok, node} <- node |> Chrome.dispatch_mouse_event("mousePressed", x, y, "left"),
+         {:ok, node} <- node |> Chrome.dispatch_mouse_event("mouseReleased", x, y, "left") do
+      {:ok, node}
+    end
   end
 
   def keypress(%DomNode{} = node, :enter) do
     # see https://github.com/GoogleChrome/puppeteer/blob/master/lib/USKeyboardLayout.js#L32
     # and https://github.com/GoogleChrome/puppeteer/blob/master/lib/Input.js#L176
 
-    node
-    |> Chrome.focus()
-    |> Chrome.dispatch_key_event("keyDown", "Enter", 13, "Enter", "\r")
-    |> Chrome.dispatch_key_event("keyUp", "Enter", 13, "Enter", "\r")
+    with {:ok, node} <- node |> Chrome.focus(),
+         {:ok, node} <- node |> Chrome.dispatch_key_event("keyDown", "Enter", 13, "Enter", "\r"),
+         {:ok, node} <- node |> Chrome.dispatch_key_event("keyUp", "Enter", 13, "Enter", "\r") do
+      {:ok, node}
+    end
   end
 end

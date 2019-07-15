@@ -188,7 +188,7 @@ defmodule ClickTest do
     end
 
     test "raises if the navigation fails" do
-      assert_raise(MatchError, fn ->
+      assert_raise(RuntimeError, fn ->
         Click.connect() |> Click.wait_for_navigation(fn _ -> nil end)
       end)
     end

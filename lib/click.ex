@@ -1,5 +1,6 @@
 defmodule Click do
   import Click.DomNode, only: [one!: 1, with_nodes: 2]
+  import Click.Ok, only: [ok!: 1]
 
   alias Click.Browser
   alias Click.Chrome
@@ -19,59 +20,47 @@ defmodule Click do
       opts |> Keyword.get(:base_url, "http://localhost:4001"),
       user_agent_suffix: opts |> Keyword.get(:metadata) |> beam_metadata()
     )
+    |> ok!()
   end
 
   def attr(nodes, attr_name),
-    do: nodes |> with_nodes(&(Chrome.get_attributes(&1) |> Map.get(attr_name)))
+    do: nodes |> with_nodes(&(Chrome.get_attributes(&1) |> ok!() |> Map.get(attr_name)))
 
   def attr(nodes, attr_name, value),
-    do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value))
+    do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
   def click(node),
-    do: node |> one!() |> Chrome.click()
+    do: node |> one!() |> Chrome.click() |> ok!()
 
-  def click(node, :wait_for_navigation) do
-    with {:ok, node} <- node |> one!() |> ChromeEvent.wait_for_navigation(&Chrome.click/1, &Browser.get_current_document/1) do
-      node
-    else
-      result -> raise "click navigation failed with #{inspect(result)}"
-    end
-  end
+  def click(node, :wait_for_navigation),
+    do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1) == text))
 
   def find_all(nodes, query),
-    do: nodes |> List.wrap() |> Enum.flat_map(&Chrome.query_selector_all(&1, query))
+    do: nodes |> List.wrap() |> Enum.flat_map(&(Chrome.query_selector_all(&1, query) |> ok!()))
 
   def find_first(nodes, query),
-    do: nodes |> find_all(query) |> List.first()
+    do: nodes |> find_all(query) |> List.first() |> ok!()
 
   def html(nodes),
-    do: nodes |> with_nodes(&Chrome.get_outer_html(&1))
+    do: nodes |> with_nodes(&(Chrome.get_outer_html(&1) |> ok!()))
 
-  def navigate(node, path) do
-    with node <- one!(node),
-         {:ok, node} <- Browser.navigate(node, path) do
-      node
-    else
-      result -> raise "navigation to #{path} failed with #{inspect(result)}"
-    end
-  end
+  def navigate(node, path),
+    do: one!(node) |> Browser.navigate(path) |> ok!()
 
   def screenshot(node),
-    do: node |> one!() |> Chrome.capture_screenshot() |> Base.decode64!() |> Tempfile.write(".png")
+    do: node |> one!() |> Chrome.capture_screenshot() |> ok!() |> Base.decode64!() |> Tempfile.write(".png")
 
   def send_enter(nodes),
-    do: nodes |> with_nodes(&Simulate.keypress(&1, :enter))
+    do: nodes |> with_nodes(&Simulate.keypress(&1, :enter)) |> ok!()
 
   def text(nodes, depth \\ @full_depth),
-    do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> NodeDescription.extract_text()))
+    do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> ok!() |> NodeDescription.extract_text()))
 
-  def wait_for_navigation(nodes, fun) do
-    {:ok, node} = ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1)
-    node
-  end
+  def wait_for_navigation(nodes, fun),
+    do: ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1) |> ok!()
 
   #
 

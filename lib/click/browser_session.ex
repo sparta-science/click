@@ -13,6 +13,9 @@ defmodule Click.BrowserSession do
   def update_user_agent(node, nil),
     do: {:ok, node}
 
-  def update_user_agent(%DomNode{} = node, suffix),
-    do: {:ok, Chrome.set_user_agent(node, Chrome.get_user_agent(node) <> suffix)}
+  def update_user_agent(%DomNode{} = node, suffix) do
+    with {:ok, user_agent} <- Chrome.get_user_agent(node) do
+      Chrome.set_user_agent(node, user_agent <> suffix)
+    end
+  end
 end

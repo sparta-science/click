@@ -1,4 +1,6 @@
 defmodule Click.Browser do
+  import Click.Ok, only: [ok!: 1]
+
   alias Click.BrowserSession
   alias Click.Chrome
   alias Click.ChromeEvent
@@ -6,7 +8,7 @@ defmodule Click.Browser do
 
   def new!(base_url, opts \\ []) do
     case new(base_url, opts) do
-      {:ok, dom_node} -> dom_node
+      {:ok, %DomNode{} = node} -> node
       {:error, message} -> raise "Click could not connect to #{base_url}: #{inspect(message)}"
     end
   end
@@ -23,10 +25,10 @@ defmodule Click.Browser do
   #
 
   def get_current_document(%DomNode{} = node) do
-    {:ok, Chrome.get_document(node)}
+    Chrome.get_document(node)
   end
 
   def navigate(node, path) do
-    ChromeEvent.wait_for_navigation(node, &Chrome.navigate(&1, path), &get_current_document/1)
+    ChromeEvent.wait_for_navigation(node, &(Chrome.navigate(&1, path) |> ok!()), &Chrome.get_document/1)
   end
 end
