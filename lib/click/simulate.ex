@@ -7,7 +7,7 @@ defmodule Click.Simulate do
     # the coordinates from get_box_model are sometimes relative to something inside the page,
     # which makes this whole function click in the wrong place sometimes
 
-    with {:ok, node} <- Chrome.scroll_into_view(node),
+    with {:ok, node} <- Click.eval(node, "this.scrollIntoView()"),
          {:ok, box_model} <- Chrome.get_box_model(node),
          [x, y] <- box_model |> Quad.center(),
          {:ok, node} <- node |> Chrome.dispatch_mouse_event("mouseMoved", x, y, "none"),

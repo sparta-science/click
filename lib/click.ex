@@ -30,10 +30,13 @@ defmodule Click do
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
   def click(node),
-    do: node |> one!() |> Chrome.click() |> ok!()
+    do: node |> one!() |> eval("this.click()") |> ok!()
 
   def click(node, :wait_for_navigation),
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
+
+  def eval(node, javascript),
+    do: Chrome.call_function_on(node, javascript) |> ok!()
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1) == text))

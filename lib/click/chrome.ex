@@ -3,16 +3,16 @@ defmodule Click.Chrome do
   alias Click.Extra
   alias Click.DomNode
 
-  def capture_screenshot(%DomNode{pid: pid}) do
-    with {:ok, %{"result" => %{"data" => data}}} <- RPC.Page.captureScreenshot(pid, %{}) do
-      {:ok, data}
+  def call_function_on(%DomNode{id: id, pid: pid} = node, javascript) do
+    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
+      {:ok, node}
     end
   end
 
-  def click(%DomNode{id: id, pid: pid} = node) do
-    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
-         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.click(); }", "objectId" => object_id}) do
-      {:ok, node}
+  def capture_screenshot(%DomNode{pid: pid}) do
+    with {:ok, %{"result" => %{"data" => data}}} <- RPC.Page.captureScreenshot(pid, %{}) do
+      {:ok, data}
     end
   end
 
@@ -80,13 +80,6 @@ defmodule Click.Chrome do
   def query_selector_all(%DomNode{id: id, pid: pid} = node, query) do
     with {:ok, %{"result" => %{"nodeIds" => node_ids}}} <- RPC.DOM.querySelectorAll(pid, %{"nodeId" => id, "selector" => query}) do
       {:ok, node_ids |> Enum.map(fn node_id -> %{node | id: node_id} end)}
-    end
-  end
-
-  def scroll_into_view(%DomNode{id: id, pid: pid} = node) do
-    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
-         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { this.scrollIntoView(); }", "objectId" => object_id}) do
-      {:ok, node}
     end
   end
 
