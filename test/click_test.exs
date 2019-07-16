@@ -145,18 +145,34 @@ defmodule ClickTest do
   end
 
   describe "text" do
+    test "gets the text as displayed in the browser" do
+      text = Click.connect() |> Click.navigate("/styled-text") |> Click.find_first("#level-1") |> Click.text()
+
+      assert text ==
+               """
+               Start of level 1.
+               START OF LEVEL 2.
+               LEVEL 3.
+               END OF LEVEL 2.
+               End of level 1.
+               """
+               |> String.trim()
+    end
+  end
+
+  describe "text (raw)" do
     test "by default, gets the text of all descendants, joined by a single space" do
-      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text()
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text(:raw)
       assert text == "Start of level 1. Start of level 2. Level 3. End of level 2. End of level 1."
     end
 
     test "can get the text of any node depth" do
-      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text(1)
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_first("#level-1") |> Click.text(:raw, 1)
       assert text == "Start of level 1. End of level 1."
     end
 
     test "when given multiple nodes, gets text of each node and its descendants" do
-      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text()
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text(:raw)
 
       assert text == [
                "Start of level 1. Start of level 2. Level 3. End of level 2. End of level 1.",
@@ -166,7 +182,7 @@ defmodule ClickTest do
     end
 
     test "when given multiple nodes, can get the text for each at any depth" do
-      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text(1)
+      text = Click.connect() |> Click.navigate("/deep") |> Click.find_all("div") |> Click.text(:raw, 1)
 
       assert text == [
                "Start of level 1. End of level 1.",
@@ -176,8 +192,8 @@ defmodule ClickTest do
     end
 
     test "returns nil when getting the text of no elements" do
-      assert nil |> Click.text() == nil
-      assert [] |> Click.text() == []
+      assert nil |> Click.text(:raw) == nil
+      assert [] |> Click.text(:raw) == []
     end
   end
 

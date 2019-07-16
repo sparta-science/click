@@ -30,7 +30,7 @@ defmodule Click do
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
   def click(node),
-    do: node |> one!() |> eval("this.click()") |> ok!()
+    do: node |> one!() |> eval("this.click()") |> ok!() |> return(node)
 
   def click(node, :wait_for_navigation),
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
@@ -59,7 +59,17 @@ defmodule Click do
   def send_enter(nodes),
     do: nodes |> with_nodes(&Simulate.keypress(&1, :enter)) |> ok!()
 
-  def text(nodes, depth \\ @full_depth),
+  @doc """
+  Returns the text content of the node or nodes. If a node is visible, some styling such as text-transform will be applied.
+  If a node is not visible, styling is not applied but the text is still returned. (This is unfortunately how Chrome works.)
+  """
+  def text(nodes),
+    do: nodes |> with_nodes(&Click.eval(&1, "return this.innerText")) |> ok!()
+
+  @doc """
+  Returns the raw text of the node or nodes. No styling is applied, and newlines and other spacing are not preserved.
+  """
+  def text(nodes, :raw, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> ok!() |> NodeDescription.extract_text()))
 
   def wait_for_navigation(nodes, fun),
@@ -72,4 +82,7 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
+
+  defp return(_, value),
+    do: value
 end

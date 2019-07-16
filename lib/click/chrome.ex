@@ -5,8 +5,11 @@ defmodule Click.Chrome do
 
   def call_function_on(%DomNode{id: id, pid: pid} = node, javascript) do
     with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
-         {:ok, _} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
-      {:ok, node}
+         {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
+      case result do
+        %{"type" => "string", "value" => value} -> {:ok, value}
+        %{"type" => "undefined"} -> {:ok, "undefined"}
+      end
     end
   end
 
