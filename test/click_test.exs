@@ -69,6 +69,16 @@ defmodule ClickTest do
     end
   end
 
+  describe "current_path" do
+    test "returns the current path" do
+      node = Click.connect()
+      assert node |> Click.current_path() == "/"
+
+      node = node |> Click.navigate("/form")
+      assert node |> Click.current_path() == "/form"
+    end
+  end
+
   describe "filter" do
     test "can filter a list of nodes by their text contents" do
       nodes = Click.connect() |> Click.find_all("h2") |> Click.filter(text: "Ipsum")

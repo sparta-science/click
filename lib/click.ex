@@ -35,6 +35,9 @@ defmodule Click do
   def click(node, :wait_for_navigation),
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
 
+  def current_path(node),
+    do: node |> one!() |> eval("return window.location.pathname") |> ok!()
+
   def eval(node, javascript),
     do: Chrome.call_function_on(node, javascript) |> ok!()
 
