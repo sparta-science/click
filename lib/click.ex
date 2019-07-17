@@ -7,7 +7,6 @@ defmodule Click do
   alias Click.ChromeEvent
   alias Click.NodeDescription
   alias Click.Simulate
-  alias Click.Tempfile
 
   @full_depth -1
 
