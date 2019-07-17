@@ -24,7 +24,6 @@ defmodule Click.MixProject do
 
   defp deps do
     [
-      {:briefly, "~> 0.3"},
       {:chrome_remote_interface, "~> 0.3.0"},
       {:chroxy, git: "https://github.com/sparta-science/chroxy.git", ref: "7b8890135a896c44e59ba1a18ac52172d108d5a9"},
 

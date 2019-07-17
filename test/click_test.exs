@@ -136,12 +136,19 @@ defmodule ClickTest do
     end
   end
 
+  describe "pdf" do
+    test "gets base64 encoded pdf" do
+      data = Click.connect() |> Click.navigate("/") |> Click.pdf()
+      assert String.length(data) > 5_000
+      assert {:ok, _} = Base.decode64(data)
+    end
+  end
+
   describe "screenshot" do
-    test "saves a screenshot to a temp file" do
-      path = Click.connect() |> Click.navigate("/") |> Click.screenshot()
-      assert path =~ ~r|\A/.*/briefly.*\.png\z|
-      assert File.exists?(path)
-      assert File.stat!(path).size > 5_000
+    test "gets base64 encoded screenshot" do
+      data = Click.connect() |> Click.navigate("/") |> Click.screenshot()
+      assert String.length(data) > 5_000
+      assert {:ok, _} = Base.decode64(data)
     end
   end
 

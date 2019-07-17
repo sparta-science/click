@@ -60,7 +60,7 @@ defmodule Click do
     do: one!(node) |> Chrome.print_to_pdf() |> ok!()
 
   def screenshot(node),
-    do: node |> one!() |> Chrome.capture_screenshot() |> ok!() |> Base.decode64!() |> Tempfile.write(".png")
+    do: node |> one!() |> Chrome.capture_screenshot() |> ok!()
 
   def send_enter(nodes),
     do: nodes |> with_nodes(&Simulate.keypress(&1, :enter)) |> ok!()
