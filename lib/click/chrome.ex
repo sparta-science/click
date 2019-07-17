@@ -3,7 +3,7 @@ defmodule Click.Chrome do
   alias Click.Extra
   alias Click.DomNode
 
-  def call_function_on(%DomNode{id: id, pid: pid} = node, javascript) do
+  def call_function_on(%DomNode{id: id, pid: pid}, javascript) do
     with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
          {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
       case result do
