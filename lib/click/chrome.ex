@@ -98,6 +98,12 @@ defmodule Click.Chrome do
     end
   end
 
+  def reload(%DomNode{pid: pid}) do
+    with {:ok, _} <- RPC.Page.reload(pid, %{"ignoreCache" => true}) do
+      :ok
+    end
+  end
+
   def set_attribute(%DomNode{id: id, pid: pid} = node, attr, value) do
     with {:ok, %{"result" => %{}}} <- RPC.DOM.setAttributeValue(pid, %{"nodeId" => id, "name" => attr, "value" => value}) do
       {:ok, node}

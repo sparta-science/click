@@ -58,6 +58,9 @@ defmodule Click do
   def pdf(node),
     do: one!(node) |> Chrome.print_to_pdf() |> ok!()
 
+  def reload(node),
+    do: one!(node) |> ChromeEvent.wait_for_load(&Chrome.reload/1, &Browser.get_current_document/1) |> ok!()
+
   def screenshot(node),
     do: node |> one!() |> Chrome.capture_screenshot() |> ok!()
 

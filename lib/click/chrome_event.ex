@@ -3,8 +3,10 @@ defmodule Click.ChromeEvent do
   alias Click.DomNode
 
   @timeout 2_000
-  @navigation_event "Page.frameNavigated"
+
   @content_event "Page.domContentEventFired"
+  @load_event "Page.loadEventFired"
+  @navigation_event "Page.frameNavigated"
 
   def flush(event) do
     receive do
@@ -20,6 +22,25 @@ defmodule Click.ChromeEvent do
 
   def unsubscribe(%DomNode{pid: pid}, event) do
     :ok = PageSession.unsubscribe(pid, event)
+  end
+
+  def wait_for_load(%DomNode{} = node, fun, success) do
+    flush(@load_event)
+    subscribe(node, @load_event)
+
+    try do
+      fun.(node)
+
+      receive do
+        {:chrome_remote_interface, @load_event, _response} ->
+          success.(node)
+      after
+        @timeout ->
+          {:error, "timed out after #{@timeout}ms waiting for #{@load_event}"}
+      end
+    after
+      unsubscribe(node, @load_event)
+    end
   end
 
   def wait_for_navigation(%DomNode{} = node, fun, success) do

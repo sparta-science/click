@@ -144,6 +144,18 @@ defmodule ClickTest do
     end
   end
 
+  describe "reload" do
+    test "reloads the page" do
+      root = Click.connect() |> Click.navigate("/form")
+
+      root |> Click.find_first("#text-field-1") |> Click.attr("value", "glorp")
+      assert root |> Click.find_first("#text-field-1") |> Click.attr("value") == "glorp"
+
+      root = root |> Click.reload()
+      assert root |> Click.find_first("#text-field-1") |> Click.attr("value") == ""
+    end
+  end
+
   describe "screenshot" do
     test "gets base64 encoded screenshot" do
       data = Click.connect() |> Click.navigate("/") |> Click.screenshot()
