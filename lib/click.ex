@@ -24,7 +24,7 @@ defmodule Click do
   end
 
   def attr(nodes, attr_name),
-    do: nodes |> with_nodes(&(Chrome.get_attributes(&1) |> ok!() |> Map.get(attr_name)))
+    do: nodes |> with_nodes(&Chrome.get_attributes(&1, attr_name)) |> ok!()
 
   def attr(nodes, attr_name, value),
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
@@ -51,7 +51,7 @@ defmodule Click do
     do: nodes |> find_all(query) |> List.first() |> ok!()
 
   def html(nodes),
-    do: nodes |> with_nodes(&(Chrome.get_outer_html(&1) |> ok!()))
+    do: nodes |> with_nodes(&Chrome.get_outer_html/1) |> ok!()
 
   def navigate(node, path),
     do: one!(node) |> Browser.navigate(path) |> ok!()

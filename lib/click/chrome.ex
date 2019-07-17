@@ -49,6 +49,12 @@ defmodule Click.Chrome do
     end
   end
 
+  def get_attributes(%DomNode{} = node, attribute_name) do
+    with {:ok, attribute_map} <- get_attributes(node) do
+      {:ok, Map.get(attribute_map, attribute_name)}
+    end
+  end
+
   def get_box_model(%DomNode{id: id, pid: pid}) do
     with {:ok, %{"result" => %{"model" => %{"content" => content}}}} <- RPC.DOM.getBoxModel(pid, %{"nodeId" => id}) do
       {:ok, content}
