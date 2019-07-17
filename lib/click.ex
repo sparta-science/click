@@ -56,6 +56,9 @@ defmodule Click do
   def navigate(node, path),
     do: one!(node) |> Browser.navigate(path) |> ok!()
 
+  def pdf(node),
+    do: one!(node) |> Chrome.print_to_pdf() |> ok!()
+
   def screenshot(node),
     do: node |> one!() |> Chrome.capture_screenshot() |> ok!() |> Base.decode64!() |> Tempfile.write(".png")
 

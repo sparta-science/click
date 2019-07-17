@@ -80,6 +80,12 @@ defmodule Click.Chrome do
     end
   end
 
+  def print_to_pdf(%DomNode{pid: pid}) do
+    with {:ok, %{"result" => %{"data" => data}}} <- RPC.Page.printToPDF(pid, %{}) do
+      {:ok, data}
+    end
+  end
+
   def query_selector_all(%DomNode{id: id, pid: pid} = node, query) do
     with {:ok, %{"result" => %{"nodeIds" => node_ids}}} <- RPC.DOM.querySelectorAll(pid, %{"nodeId" => id, "selector" => query}) do
       {:ok, node_ids |> Enum.map(fn node_id -> %{node | id: node_id} end)}
