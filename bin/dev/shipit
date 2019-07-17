@@ -3,5 +3,6 @@
 set -ex
 
 bin/dev/update
+mix clean && mix compile --force --warnings-as-errors || (mix clean && false)
 bin/dev/test
 git push
