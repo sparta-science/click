@@ -43,6 +43,12 @@ defmodule ClickTest do
       assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
     end
 
+    test "can click and wait for the page to load (even if naviation doesn't change)" do
+      links_page = Click.connect() |> Click.navigate("/links")
+      slow = links_page |> Click.find_first("a#slow") |> Click.click(:wait_for_load)
+      assert slow |> Click.find_first("body") |> Click.attr("data-role") == "slow-page"
+    end
+
     test "can click on things that don't result in page navigation" do
       form_page = Click.connect() |> Click.navigate("/form")
       first_checkbox = form_page |> Click.find_first("#checkbox-1:not(:checked)")

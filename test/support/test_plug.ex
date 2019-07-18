@@ -28,6 +28,19 @@ defmodule Click.TestSupport.TestPlug do
     """
   end
 
+  def load_page("/slow", _conn) do
+    :timer.sleep(1_000)
+
+    """
+    <html>
+      <head></head>
+      <body data-role="slow-page">
+        ok!
+      </body>
+    </html>
+    """
+  end
+
   def load_page("/" <> file, _conn) do
     File.read!("test/support/fixtures/#{file}.html")
   end

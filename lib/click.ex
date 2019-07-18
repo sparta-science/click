@@ -31,6 +31,9 @@ defmodule Click do
   def click(node),
     do: node |> one!() |> eval("this.click()") |> ok!() |> return(node)
 
+  def click(node, :wait_for_load),
+    do: node |> one!() |> ChromeEvent.wait_for_load(&click/1, &Browser.get_current_document/1) |> ok!()
+
   def click(node, :wait_for_navigation),
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
 
