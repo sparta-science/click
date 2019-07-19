@@ -3,11 +3,23 @@ defmodule ClickTest do
 
   import Click.TestSupport.Html, only: [normalize: 1]
 
+  alias Click.Browser
   alias Click.DomNode
   alias Click.TestSupport.TestPlug
 
   describe "attr" do
     test "gets the specified attrs from the passed in nodes" do
+      browser = Click.connect()
+      browser = browser |> Click.navigate("/attrs")
+      {browser, nodes} = browser |> Click.find_all("div")
+      browser |> Click.attr(nodes, "data-role")
+      {browser, nodes} |> Click.attr("data-role")
+
+      # browser -> browser
+      # browser in, nodes out
+      # browser + nodes in, browser + nodes out
+      # browser + node in, browser + node out
+
       root = Click.connect() |> Click.navigate("/attrs")
 
       assert root |> Click.find_all("div") |> Click.attr("data-role") == ["top", "inner", "bottom", nil]
@@ -30,7 +42,7 @@ defmodule ClickTest do
       page_two = links_page |> Click.find_first("a#page-two") |> Click.click(:wait_for_navigation)
       assert normalize(Click.html(page_two)) == normalize(TestPlug.load_page("/page-two"))
 
-      {:ok, page_two} = Click.Browser.get_current_document(links_page)
+      {:ok, page_two} = Click.Chrome.get_document(links_page)
       assert normalize(Click.html(page_two)) == normalize(TestPlug.load_page("/page-two"))
     end
 
@@ -39,7 +51,7 @@ defmodule ClickTest do
       home = links_page |> Click.find_first("a#home") |> Click.click(:wait_for_navigation)
       assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
 
-      {:ok, home} = Click.Browser.get_current_document(links_page)
+      {:ok, home} = Click.Chrome.get_document(links_page)
       assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
     end
 
@@ -124,8 +136,8 @@ defmodule ClickTest do
     end
 
     test "returns nothing when there are no nodes" do
-      assert nil |> Click.html() == nil
-      assert [] |> Click.html() == []
+      assert %Browser{} |> Click.html() == %Browser{}
+      assert {%Browser{}, []} |> Click.html() == {%Browser{}, []}
     end
   end
 

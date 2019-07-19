@@ -1,6 +1,6 @@
 defmodule Click.ChromeEvent do
   alias ChromeRemoteInterface.PageSession
-  alias Click.DomNode
+  alias Click.Browser
 
   @timeout 2_000
   @navigation_event "Page.frameNavigated"
@@ -14,29 +14,29 @@ defmodule Click.ChromeEvent do
     end
   end
 
-  def subscribe(%DomNode{pid: pid}, event) do
+  def subscribe(%Browser{pid: pid}, event) do
     :ok = PageSession.subscribe(pid, event)
   end
 
-  def unsubscribe(%DomNode{pid: pid}, event) do
+  def unsubscribe(%Browser{pid: pid}, event) do
     :ok = PageSession.unsubscribe(pid, event)
   end
 
-  def wait_for_navigation(%DomNode{} = node, fun, success) do
+  def wait_for_navigation(%Browser{} = browser, fun, success) do
     flush(@navigation_event)
     flush(@content_event)
 
-    subscribe(node, @navigation_event)
-    subscribe(node, @content_event)
+    subscribe(browser, @navigation_event)
+    subscribe(browser, @content_event)
 
     try do
-      fun.(node)
+      fun.()
 
       receive do
         {:chrome_remote_interface, @navigation_event, _response} ->
           receive do
             {:chrome_remote_interface, @content_event, _response} ->
-              success.(node)
+              success.()
           after
             @timeout ->
               {:error, "timed out after #{@timeout}ms waiting for #{@content_event}"}
@@ -46,8 +46,8 @@ defmodule Click.ChromeEvent do
           {:error, "timed out after #{@timeout}ms waiting for #{@navigation_event}"}
       end
     after
-      unsubscribe(node, @navigation_event)
-      unsubscribe(node, @content_event)
+      unsubscribe(browser, @navigation_event)
+      unsubscribe(browser, @content_event)
     end
   end
 end

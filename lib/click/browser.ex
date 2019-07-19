@@ -1,34 +1,26 @@
 defmodule Click.Browser do
   import Click.Ok, only: [ok!: 1]
 
+  defstruct ~w{base_url pid}a
+
+  alias Click.Browser
   alias Click.BrowserSession
   alias Click.Chrome
   alias Click.ChromeEvent
-  alias Click.DomNode
-
-  def new!(base_url, opts \\ []) do
-    case new(base_url, opts) do
-      {:ok, %DomNode{} = node} -> node
-      {:error, message} -> raise "Click could not connect to #{base_url}: #{inspect(message)}"
-    end
-  end
 
   def new(base_url, opts \\ []) do
-    with node <- %DomNode{base_url: base_url, id: nil, pid: nil},
-         {:ok, node} <- BrowserSession.start(node),
-         {:ok, node} <- BrowserSession.update_user_agent(node, Keyword.get(opts, :user_agent_suffix)),
-         {:ok, node} <- navigate(node, "/") do
-      {:ok, node}
+    with browser <- %Browser{base_url: base_url, pid: nil},
+         {:ok, browser} <- BrowserSession.start(browser),
+         :ok <- BrowserSession.update_user_agent(browser, Keyword.get(opts, :user_agent_suffix)) do
+      {:ok, browser}
     end
   end
 
-  #
-
-  def get_current_document(%DomNode{} = node) do
-    Chrome.get_document(node)
-  end
-
-  def navigate(node, path) do
-    ChromeEvent.wait_for_navigation(node, &(Chrome.navigate(&1, path) |> ok!()), &Chrome.get_document/1)
+  def navigate(%Browser{} = browser, path) do
+    ChromeEvent.wait_for_navigation(
+      browser,
+      fn -> Chrome.navigate(browser, path) |> ok!() end,
+      fn -> Chrome.get_document(browser) end
+    )
   end
 end
