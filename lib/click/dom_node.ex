@@ -18,3 +18,22 @@ defmodule Click.DomNode do
   def with_nodes(node, fun),
     do: fun.(node)
 end
+
+defimpl Inspect, for: Click.DomNode do
+  import Inspect.Algebra
+
+  def inspect(node, opts) do
+    concat([
+      "#Click.DomNode<",
+      "\n  base_url: ",
+      to_doc(node.base_url, opts),
+      "\n  id: ",
+      to_doc(node.id, opts),
+      "\n  pid: ",
+      to_doc(node.pid, opts),
+      "\n  html:\n      ",
+      Click.html(node),
+      "\n>"
+    ])
+  end
+end
