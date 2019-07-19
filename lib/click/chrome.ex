@@ -61,6 +61,13 @@ defmodule Click.Chrome do
     end
   end
 
+  def get_computed_style(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{}}} <- RPC.CSS.enable(pid),
+         {:ok, %{"result" => %{"computedStyle" => computed_styles}}} <- RPC.CSS.getComputedStyleForNode(pid, %{"nodeId" => id}) do
+      {:ok, computed_styles}
+    end
+  end
+
   def get_document(%DomNode{pid: pid} = node) do
     with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid) do
       {:ok, %{node | id: id}}

@@ -11,6 +11,7 @@ defmodule Click do
   @full_depth -1
 
   def start(_type, _args) do
+    check_chrome_remote_interface_version!()
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
 
@@ -96,4 +97,15 @@ defmodule Click do
 
   defp return(_, value),
     do: value
+
+  defp check_chrome_remote_interface_version!() do
+    version = ChromeRemoteInterface.protocol_version()
+
+    unless version == "tot" do
+      raise """
+        Expected Chrome Remote Interface protocol version to be “tot” but was “#{version}”.
+        Make sure environment variable CRI_PROTOCOL_VERSION is set to “tot” **before** compiling Click's dependencies.
+      """
+    end
+  end
 end

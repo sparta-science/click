@@ -1,1 +1,2 @@
 export CLICK_BROWSER_PATH=/Applications/Chromium.app/Contents/MacOS/Chromium
+export CRI_PROTOCOL_VERSION=tot
