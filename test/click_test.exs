@@ -36,6 +36,8 @@ defmodule ClickTest do
 
     test "finds and clicks links that are off the bottom of the page" do
       links_page = Click.connect() |> Click.navigate("/links")
+      {:ok, x} = links_page |> Click.find_first("a#home") |> Click.Chrome.get_properties(:compact)
+      IO.puts(x)
       home = links_page |> Click.find_first("a#home") |> Click.click(:wait_for_navigation)
       assert normalize(Click.html(home)) == normalize(TestPlug.load_page("/home"))
 
@@ -98,6 +100,24 @@ defmodule ClickTest do
       nodes = Click.connect() |> Click.find_all("h2")
       assert length(nodes) == 2
       assert Click.text(nodes) == ["Lorem", "Ipsum"]
+    end
+
+    test "by default, only returns visible nodes, but can optionally include invisible ones" do
+      page = Click.connect() |> Click.navigate("/hidden-elements")
+      assert page |> Click.find_all("h1") |> Click.text() == ["Visible"]
+      assert page |> Click.find_all("h1", :include_invisible) |> Click.text() == ["Visible", "Hidden"]
+    end
+  end
+
+  describe "visible?" do
+    test "returns true for visible nodes, false for hidden ones" do
+      page = Click.connect() |> Click.navigate("/hidden-elements")
+
+      {:ok, [node]} = Click.Chrome.query_selector_all(page, "#visible")
+      assert node |> Click.visible?()
+
+      {:ok, [node]} = Click.Chrome.query_selector_all(page, "#hidden")
+      refute node |> Click.visible?()
     end
   end
 

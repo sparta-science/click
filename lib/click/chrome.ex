@@ -3,11 +3,13 @@ defmodule Click.Chrome do
   alias Click.Extra
   alias Click.DomNode
 
-  def call_function_on(%DomNode{id: id, pid: pid}, javascript) do
-    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
-         {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
+  def call_function_on(%DomNode{id: id, pid: pid}, javascript, opts \\ []) do
+    with await_promise <- opts |> Keyword.get(:await_promise, false),
+         {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, %{"result" => %{"result" => result}}} <-
+           RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id, "awaitPromise" => await_promise}) do
       case result do
-        %{"type" => "string", "value" => value} -> {:ok, value}
+        %{"value" => value} -> {:ok, value}
         %{"type" => "undefined"} -> {:ok, "undefined"}
       end
     end
@@ -37,6 +39,15 @@ defmodule Click.Chrome do
     end
   end
 
+  def evaluate(%DomNode{pid: pid}, javascript) do
+    with {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.evaluate(pid, %{"expression" => javascript}) do
+      case result do
+        %{"value" => value} -> {:ok, value}
+        %{"type" => "undefined"} -> {:ok, "undefined"}
+      end
+    end
+  end
+
   def focus(%DomNode{id: id, pid: pid} = node) do
     with {:ok, %{"result" => %{}}} <- RPC.DOM.focus(pid, %{"nodeId" => id}) do
       {:ok, node}
@@ -61,6 +72,21 @@ defmodule Click.Chrome do
     end
   end
 
+  def get_computed_style(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{}}} <- RPC.CSS.enable(pid),
+         {:ok, %{"result" => %{"computedStyle" => computed_styles}}} <- RPC.CSS.getComputedStyleForNode(pid, %{"nodeId" => id}) do
+      {:ok, computed_styles}
+    end
+  end
+
+  def get_computed_style(node, css_property) do
+    with {:ok, computed_styles} <- get_computed_style(node) do
+      computed_styles
+      |> Enum.find(fn %{"name" => property} -> property == css_property end)
+      |> Map.get("value")
+    end
+  end
+
   def get_document(%DomNode{pid: pid} = node) do
     with {:ok, %{"result" => %{"root" => %{"nodeId" => id}}}} <- RPC.DOM.getDocument(pid) do
       {:ok, %{node | id: id}}
@@ -70,6 +96,31 @@ defmodule Click.Chrome do
   def get_outer_html(%DomNode{id: id, pid: pid}) do
     with {:ok, %{"result" => %{"outerHTML" => outer_html}}} <- RPC.DOM.getOuterHTML(pid, %{"nodeId" => id}) do
       {:ok, outer_html}
+    end
+  end
+
+  def get_properties(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.getProperties(pid, %{"objectId" => object_id}) do
+      {:ok, result}
+    end
+  end
+
+  def get_properties(%DomNode{} = node, :compact) do
+    with {:ok, result} <- get_properties(node) do
+      {:ok, result |> Enum.map(&"#{&1["name"]}: #{inspect(&1["value"])}") |> Enum.join("\n")}
+    end
+  end
+
+  def get_properties(%DomNode{} = node, property) when is_binary(property) do
+    with {:ok, result} <- get_properties(node) do
+      {:ok, result[property]}
+    end
+  end
+
+  def get_properties(%DomNode{} = node, properties) when is_list(properties) do
+    with {:ok, result} <- get_properties(node) do
+      {:ok, result |> Enum.map(&Map.take(&1, properties))}
     end
   end
 

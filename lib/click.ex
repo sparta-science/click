@@ -5,12 +5,14 @@ defmodule Click do
   alias Click.Browser
   alias Click.Chrome
   alias Click.ChromeEvent
+  alias Click.Javascript
   alias Click.NodeDescription
   alias Click.Simulate
 
   @full_depth -1
 
   def start(_type, _args) do
+    check_chrome_remote_interface_version!()
     Supervisor.start_link([], strategy: :one_for_one, name: Click.Supervisor)
   end
 
@@ -29,7 +31,7 @@ defmodule Click do
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
   def click(node),
-    do: node |> one!() |> eval("this.click()") |> ok!() |> return(node)
+    do: node |> one!() |> call("this.scrollIntoView(); this.click();") |> ok!() |> return(node)
 
   def click(node, :wait_for_load),
     do: node |> one!() |> ChromeEvent.wait_for_load(&click/1, &Browser.get_current_document/1) |> ok!()
@@ -38,15 +40,21 @@ defmodule Click do
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
 
   def current_path(node),
-    do: node |> one!() |> eval("return window.location.pathname") |> ok!()
+    do: node |> one!() |> call("return window.location.pathname") |> ok!()
+
+  def call(node, javascript),
+    do: Chrome.call_function_on(node, javascript) |> ok!()
 
   def eval(node, javascript),
-    do: Chrome.call_function_on(node, javascript) |> ok!()
+    do: Chrome.evaluate(node, javascript) |> ok!()
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1) == text))
 
   def find_all(nodes, query),
+    do: nodes |> find_all(query, :include_invisible) |> Enum.filter(&Javascript.visible?/1) |> ok!()
+
+  def find_all(nodes, query, :include_invisible),
     do: nodes |> List.wrap() |> Enum.flat_map(&(Chrome.query_selector_all(&1, query) |> ok!()))
 
   def find_first(nodes, query),
@@ -75,13 +83,29 @@ defmodule Click do
   If a node is not visible, styling is not applied but the text is still returned. (This is unfortunately how Chrome works.)
   """
   def text(nodes),
-    do: nodes |> with_nodes(&Click.eval(&1, "return this.innerText")) |> ok!()
+    do: nodes |> with_nodes(&Click.call(&1, "return this.innerText")) |> ok!()
 
   @doc """
   Returns the raw text of the node or nodes. No styling is applied, and newlines and other spacing are not preserved.
   """
   def text(nodes, :raw, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> ok!() |> NodeDescription.extract_text()))
+
+  def visible?(node) do
+    props =
+      node
+      |> one!()
+      |> Chrome.get_properties()
+      |> ok!()
+
+    width = props |> Enum.find(fn %{"name" => name} -> name == "offsetWidth" end) |> Map.get("value") |> Map.get("value")
+    height = props |> Enum.find(fn %{"name" => name} -> name == "offsetHeight" end) |> Map.get("value") |> Map.get("value")
+
+    width > 0 && height > 0
+  end
+
+  # |> Enum.map(&Map.get(&1, "value")) |> Enum.all?(&(&1 > 0))
+  #    do: node |> one!() |> Chrome.get_properties(["offsetWidth", "offsetHeight"]) |> ok!()
 
   def wait_for_navigation(nodes, fun),
     do: ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1) |> ok!()
@@ -96,4 +120,17 @@ defmodule Click do
 
   defp return(_, value),
     do: value
+
+  defp check_chrome_remote_interface_version!() do
+    version = ChromeRemoteInterface.protocol_version()
+
+    unless version == "tot" do
+      raise """
+
+        Expected Chrome Remote Interface protocol version to be “tot” but was “#{version}”.
+
+        Make sure environment variable CRI_PROTOCOL_VERSION is set to “tot” **before** compiling Click's dependencies.
+      """
+    end
+  end
 end
