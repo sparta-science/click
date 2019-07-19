@@ -6,6 +6,7 @@ defmodule Click do
   alias Click.Chrome
   alias Click.ChromeEvent
   alias Click.NodeDescription
+  alias Click.Properties
   alias Click.Simulate
 
   @full_depth -1
@@ -30,7 +31,7 @@ defmodule Click do
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
   def click(node),
-    do: node |> one!() |> eval("this.click()") |> ok!() |> return(node)
+    do: node |> one!() |> call("this.scrollIntoView(); this.click();") |> ok!() |> return(node)
 
   def click(node, :wait_for_load),
     do: node |> one!() |> ChromeEvent.wait_for_load(&click/1, &Browser.get_current_document/1) |> ok!()
@@ -39,15 +40,21 @@ defmodule Click do
     do: node |> one!() |> ChromeEvent.wait_for_navigation(&click/1, &Browser.get_current_document/1) |> ok!()
 
   def current_path(node),
-    do: node |> one!() |> eval("return window.location.pathname") |> ok!()
+    do: node |> one!() |> call("return window.location.pathname") |> ok!()
+
+  def call(node, javascript),
+    do: Chrome.call_function_on(node, javascript) |> ok!()
 
   def eval(node, javascript),
-    do: Chrome.call_function_on(node, javascript) |> ok!()
+    do: Chrome.evaluate(node, javascript) |> ok!()
 
   def filter(nodes, text: text),
     do: nodes |> Enum.filter(&(text(&1) == text))
 
   def find_all(nodes, query),
+    do: nodes |> find_all(query, :include_invisible) |> Enum.filter(&visible?/1) |> ok!()
+
+  def find_all(nodes, query, :include_invisible),
     do: nodes |> List.wrap() |> Enum.flat_map(&(Chrome.query_selector_all(&1, query) |> ok!()))
 
   def find_first(nodes, query),
@@ -76,13 +83,16 @@ defmodule Click do
   If a node is not visible, styling is not applied but the text is still returned. (This is unfortunately how Chrome works.)
   """
   def text(nodes),
-    do: nodes |> with_nodes(&Click.eval(&1, "return this.innerText")) |> ok!()
+    do: nodes |> with_nodes(&Click.call(&1, "return this.innerText")) |> ok!()
 
   @doc """
   Returns the raw text of the node or nodes. No styling is applied, and newlines and other spacing are not preserved.
   """
   def text(nodes, :raw, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> ok!() |> NodeDescription.extract_text()))
+
+  def visible?(node),
+    do: node |> one!() |> Chrome.get_properties() |> ok!() |> Properties.get(["offsetWidth", "offsetHeight"]) |> Enum.all?(&(&1 > 0))
 
   def wait_for_navigation(nodes, fun),
     do: ChromeEvent.wait_for_navigation(nodes, fun, &Browser.get_current_document/1) |> ok!()

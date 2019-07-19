@@ -99,6 +99,24 @@ defmodule ClickTest do
       assert length(nodes) == 2
       assert Click.text(nodes) == ["Lorem", "Ipsum"]
     end
+
+    test "by default, only returns visible nodes, but can optionally include invisible ones" do
+      page = Click.connect() |> Click.navigate("/hidden-elements")
+      assert page |> Click.find_all("h1") |> Click.text() == ["Visible"]
+      assert page |> Click.find_all("h1", :include_invisible) |> Click.text() == ["Visible", "Hidden"]
+    end
+  end
+
+  describe "visible?" do
+    test "returns true for visible nodes, false for hidden ones" do
+      page = Click.connect() |> Click.navigate("/hidden-elements")
+
+      {:ok, [node]} = Click.Chrome.query_selector_all(page, "#visible")
+      assert node |> Click.visible?()
+
+      {:ok, [node]} = Click.Chrome.query_selector_all(page, "#hidden")
+      refute node |> Click.visible?()
+    end
   end
 
   describe "find_first" do

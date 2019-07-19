@@ -3,11 +3,13 @@ defmodule Click.Chrome do
   alias Click.Extra
   alias Click.DomNode
 
-  def call_function_on(%DomNode{id: id, pid: pid}, javascript) do
-    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
-         {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.callFunctionOn(pid, %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id}) do
+  def call_function_on(%DomNode{id: id, pid: pid}, javascript, opts \\ []) do
+    with await_promise <- opts |> Keyword.get(:await_promise, false),
+         {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         args <- %{"functionDeclaration" => "function() { #{javascript} }", "objectId" => object_id, "awaitPromise" => await_promise},
+         {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.callFunctionOn(pid, args) do
       case result do
-        %{"type" => "string", "value" => value} -> {:ok, value}
+        %{"value" => value} -> {:ok, value}
         %{"type" => "undefined"} -> {:ok, "undefined"}
       end
     end
@@ -34,6 +36,15 @@ defmodule Click.Chrome do
   def dispatch_mouse_event(%DomNode{pid: pid} = node, event_type, x, y, button) do
     with {:ok, %{"result" => %{}}} <- RPC.Input.dispatchMouseEvent(pid, %{"type" => event_type, "x" => x, "y" => y, "button" => button, "clickCount" => 1}) do
       {:ok, node}
+    end
+  end
+
+  def evaluate(%DomNode{pid: pid}, javascript) do
+    with {:ok, %{"result" => %{"result" => result}}} <- RPC.Runtime.evaluate(pid, %{"expression" => javascript}) do
+      case result do
+        %{"value" => value} -> {:ok, value}
+        %{"type" => "undefined"} -> {:ok, "undefined"}
+      end
     end
   end
 
@@ -77,6 +88,13 @@ defmodule Click.Chrome do
   def get_outer_html(%DomNode{id: id, pid: pid}) do
     with {:ok, %{"result" => %{"outerHTML" => outer_html}}} <- RPC.DOM.getOuterHTML(pid, %{"nodeId" => id}) do
       {:ok, outer_html}
+    end
+  end
+
+  def get_properties(%DomNode{id: id, pid: pid}) do
+    with {:ok, %{"result" => %{"object" => %{"objectId" => object_id}}}} <- RPC.DOM.resolveNode(pid, %{"nodeId" => id}),
+         {:ok, %{"result" => %{"result" => properties}}} <- RPC.Runtime.getProperties(pid, %{"objectId" => object_id}) do
+      {:ok, properties}
     end
   end
 
