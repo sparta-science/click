@@ -30,8 +30,11 @@ defmodule Click do
   def attr(nodes, attr_name, value),
     do: nodes |> with_nodes(&Chrome.set_attribute(&1, attr_name, value)) |> ok!()
 
-  def click(node),
-    do: node |> one!() |> call("this.scrollIntoView(); this.click();") |> ok!() |> return(node)
+  def click(node) do
+    node |> one!() |> call("this.scrollIntoView();")
+    node |> one!() |> call("this.click();") |> ok!()
+    node
+  end
 
   def click(node, :wait_for_load),
     do: node |> one!() |> ChromeEvent.wait_for_load(&click/1, &Browser.get_current_document/1) |> ok!()
@@ -59,6 +62,9 @@ defmodule Click do
 
   def find_first(nodes, query),
     do: nodes |> find_all(query) |> List.first() |> ok!()
+
+  def find_first(nodes, query, :include_invisible),
+    do: nodes |> find_all(query, :include_invisible) |> List.first() |> ok!()
 
   def html(nodes),
     do: nodes |> with_nodes(&Chrome.get_outer_html/1) |> ok!()
@@ -91,6 +97,12 @@ defmodule Click do
   def text(nodes, :raw, depth \\ @full_depth),
     do: nodes |> with_nodes(&(Chrome.describe_node(&1, depth) |> ok!() |> NodeDescription.extract_text()))
 
+  def visible!(node),
+    do: node
+
+  #  def visible?(node),
+  #    do: Click.Javascript.visible?(node)
+
   def visible?(node),
     do: node |> one!() |> Chrome.get_properties() |> ok!() |> Properties.get(["offsetWidth", "offsetHeight"]) |> Enum.all?(&(&1 > 0))
 
@@ -104,9 +116,6 @@ defmodule Click do
 
   defp beam_metadata(metadata),
     do: "/BeamMetadata (#{{:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()})"
-
-  defp return(_, value),
-    do: value
 
   defp check_chrome_remote_interface_version!() do
     version = ChromeRemoteInterface.protocol_version()

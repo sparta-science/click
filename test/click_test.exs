@@ -56,6 +56,17 @@ defmodule ClickTest do
       assert clicked == first_checkbox
       form_page |> Click.find_first("#checkbox-1:checked") |> assert
     end
+
+    test "blows up if the element is not visible" do
+      assert_raise RuntimeError, "Attempted to click on non-visible node", fn ->
+        Click.connect() |> Click.navigate("/hidden-elements") |> Click.find_first("a#hidden") |> Click.click()
+      end
+    end
+
+    test "can optionally click on things that are not visible" do
+      home_page = Click.connect() |> Click.navigate("/hidden-elements") |> Click.find_first("a#hidden") |> Click.click(:include_invisible, :wait_for_navigation)
+      assert normalize(Click.html(home_page)) == normalize(TestPlug.load_page("/home"))
+    end
   end
 
   describe "connect" do
@@ -102,8 +113,8 @@ defmodule ClickTest do
 
     test "by default, only returns visible nodes, but can optionally include invisible ones" do
       page = Click.connect() |> Click.navigate("/hidden-elements")
-      assert page |> Click.find_all("h1") |> Click.text() == ["Visible"]
-      assert page |> Click.find_all("h1", :include_invisible) |> Click.text() == ["Visible", "Hidden"]
+      assert page |> Click.find_all("a") |> Click.text() == ["Visible"]
+      assert page |> Click.find_all("a", :include_invisible) |> Click.text() == ["Visible", "Hidden"]
     end
   end
 
