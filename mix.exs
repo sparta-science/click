@@ -24,14 +24,14 @@ defmodule Click.MixProject do
 
   defp deps do
     [
-      {:chrome_remote_interface, "~> 0.3.0"},
+      {:chrome_remote_interface, "~> 0.3"},
       {:chroxy, git: "https://github.com/sparta-science/chroxy.git", ref: "7b8890135a896c44e59ba1a18ac52172d108d5a9"},
 
       # Dev-only
       {:ex_doc, "~> 0.20.2", only: :dev},
 
       # Test-only
-      {:floki, "~> 0.21.0", only: :test}
+      {:floki, "~> 0.21", only: :test}
     ]
   end
 end
